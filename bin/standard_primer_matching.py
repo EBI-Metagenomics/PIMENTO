@@ -30,7 +30,9 @@ from bin.amplicon_utils import (
 from bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH
 
 
-def parse_std_primers(primers_dir: Path) -> tuple[defaultdict, defaultdict]:
+def parse_std_primers(
+    primers_dir: Path,
+) -> tuple[defaultdict[defaultdict], defaultdict[defaultdict]]:
     """
     Parse the library of standard primers.
 
@@ -78,15 +80,15 @@ def run_primer_matching_once(input_path, input_primer, rev=False):
 
     match_count = 0.0
 
-    mcp_count_dict = fetch_read_substrings(
+    substring_count_dict = fetch_read_substrings(
         input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev
     )
 
-    for mcp in mcp_count_dict.keys():
-        mcp = mcp.strip()
-        res = regex.match(input_primer, mcp)
+    for substring in substring_count_dict.keys():
+        substring = substring.strip()
+        res = regex.match(input_primer, substring)
         if res is not None:
-            match_count += mcp_count_dict[mcp]
+            match_count += substring_count_dict[substring]
 
     return match_count
 
@@ -128,23 +130,23 @@ def get_primer_props(
             if primer_name[-1] == "F":
                 primer_count = run_primer_matching_once(
                     input_fastq, primer_seq, rev=False
-                )  # Get proportion of a F primer with fuzzy regex matching
+                )  # Get count of a F primer with fuzzy regex matching
             elif primer_name[-1] == "R":
                 primer_count = run_primer_matching_once(
                     input_fastq, primer_seq, rev=True
-                )  # Get proportion of a R primer with fuzzy regex matching
+                )  # Get count of a R primer with fuzzy regex matching
 
             try:
                 primer_prop = primer_count / read_count
             except ZeroDivisionError:
                 primer_prop = 0
 
-            if "F" in primer_name:
+            if primer_name[-1] == "F":
                 if (
                     primer_prop > min_std_primer_threshold
                 ):  # Only collect primer if it's above threshold
                     res_dict[region]["F"][primer_name] = primer_prop
-            elif "R" in primer_name:
+            elif primer_name[-1] == "R":
                 if (
                     primer_prop > min_std_primer_threshold
                 ):  # Only collect primer if it's above threshold
@@ -152,7 +154,7 @@ def get_primer_props(
 
             print(f"{region_name_str}: {primer_prop}")
 
-        # If an F or/and R primer wasn't found then just remove it from the dictionary
+        # If an F or/and R primer wasn't found then just remove that key from the dictionary
         if res_dict[region]["F"] == {}:
             res_dict[region].pop("F")
         if res_dict[region]["R"] == {}:
@@ -169,7 +171,7 @@ def get_primer_props(
 
         for strand in strands.keys():
             primers = strands[strand]
-            max_prop = 0
+            max_prop = 0.0
             max_name = ""
             for primer_name, prop in primers.items():
                 if prop > max_prop:
@@ -235,7 +237,9 @@ def get_primer_props(
         return [max_region, max_primers]
 
 
-def save_out(results, output_prefix, std_primer_dict):
+def write_output(
+    results: list[str, dict], output_prefix: str, std_primer_dict: defaultdict
+) -> None:
     """
     Save found std primers into a fasta file.
     """
@@ -244,11 +248,11 @@ def save_out(results, output_prefix, std_primer_dict):
         open(f"{output_prefix}_std_primer_out.txt", "w") as fw_out,
         open(f"{output_prefix}_std_primers.fasta", "w") as fw_seq,
     ):
-        if results == []:
+        if results == []:  # if no primers found
             fw_out.write("")
             fw_seq.write("")
 
-        elif len(results) == 2:
+        elif len(results) == 2:  # if one primer found
             region = results[0]
             primer_name = list(results[1].keys())[0]
             primer_prop = results[1][list(results[1].keys())[0]]
@@ -260,7 +264,7 @@ def save_out(results, output_prefix, std_primer_dict):
 
             fw_seq.write(f">{primer_name}\n{seq}")
 
-        elif len(results) == 3:
+        elif len(results) == 3:  # if primer pair found
             region = results[0]
             f_primer_name = list(results[1].keys())[0]
             f_primer_prop = results[1][list(results[1].keys())[0]]
