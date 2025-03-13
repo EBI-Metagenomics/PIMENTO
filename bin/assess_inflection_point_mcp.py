@@ -20,13 +20,13 @@ from Bio.Seq import Seq
 import numpy as np
 import pandas as pd
 
-from mgnify_pipelines_toolkit.analysis.amplicon.amplicon_utils import (
+from bin.amplicon_utils import (
     get_read_count,
     build_cons_seq,
     build_mcp_cons_dict_list,
-    fetch_mcp,
+    fetch_read_substrings,
 )
-from mgnify_pipelines_toolkit.constants.thresholds import MCP_MAX_LINE_COUNT
+from bin.thresholds import MCP_MAX_LINE_COUNT
 
 
 def parse_args():
@@ -83,7 +83,7 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
 
     read_count = get_read_count(path)  # get readcount from fastq
 
-    max_line_count = None
+    max_line_count = 0
     if read_count > MCP_MAX_LINE_COUNT:
         max_line_count = MCP_MAX_LINE_COUNT
 
@@ -92,7 +92,7 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
     for start in inf_point_list:  # Looping through the pre-inflection point mcps
         mcp_len = start + 4  # length of pre-inf mcps is inflection point + 4
 
-        mcp_count_dict = fetch_mcp(
+        mcp_count_dict = fetch_read_substrings(
             path, mcp_len, rev=rev, max_line_count=max_line_count
         )  # get MCP count dict
         mcp_cons_list = build_mcp_cons_dict_list(
@@ -115,10 +115,9 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
     ):  # Looping through the post-inflection point mcps
         mcp_len = end + 5  # length of pre-inf mcps is inflection point + 5
         subs_len = start_cons_lens[i]  # length of respective pre-inf point sequence
-        l = mcp_len + subs_len - 1  # final index of MCP
 
-        mcp_count_dict = fetch_mcp(
-            path, l, mcp_len, rev=rev, max_line_count=max_line_count
+        mcp_count_dict = fetch_read_substrings(
+            path, subs_len, rev, mcp_len, max_line_count=max_line_count
         )
         mcp_cons_list = build_mcp_cons_dict_list(mcp_count_dict, subs_len)
         cons_seq, cons_confs = build_cons_seq(

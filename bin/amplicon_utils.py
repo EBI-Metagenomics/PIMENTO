@@ -17,7 +17,6 @@
 from collections import defaultdict, Counter
 from pathlib import Path
 import logging
-import gzip
 import os
 import pyfastx
 
@@ -27,21 +26,6 @@ from bin.regex_ambiguous_bases import (
 )
 
 logging.basicConfig(level=logging.DEBUG)
-
-
-def split_dir_into_sample_paths(dir):
-    file_list = os.listdir(dir)
-    file_list = [
-        file
-        for file in file_list
-        if ".fastq" in file and ("_1" in file or "_2" in file)
-    ]
-    sample_set = set()
-    [sample_set.add(f"{dir}/{file.split('_')[0]}") for file in file_list]
-    sample_list = sorted(list(sample_set))
-
-    return sample_list
-
 
 def get_read_count(read_path: Path, file_type: str = "fastq") -> int:
     """
@@ -80,7 +64,7 @@ def build_cons_seq(
     cons_threshold=0.80,
     do_not_include=None,
     counter=1,
-    max_line_count=None,
+    max_line_count=0,
 ):
     """
     Generate consensus sequence using a list of base conservation dictionaries most likely
@@ -108,7 +92,7 @@ def build_cons_seq(
             if base not in ("A", "T", "C", "G"):
                 continue
 
-            if max_line_count is None:
+            if max_line_count == 0:
                 cons_dict[base] = count / read_count
             else:
                 cons_dict[base] = count / max_line_count
@@ -119,7 +103,7 @@ def build_cons_seq(
         counter += 1
 
         try:
-            if max_line_count is None:
+            if max_line_count == 0:
                 max_prop = max_count / read_count
             else:
                 max_prop = max_count / max_line_count
@@ -193,7 +177,7 @@ def build_mcp_cons_dict_list(mcp_count_dict, mcp_len):
     return mcp_cons_list
 
 
-def fetch_mcp(fastq, prefix_len, start=1, rev=False, max_line_count=None):
+def fetch_read_substrings(input_fastq: Path, prefix_len: int, rev: bool = False, start: int = 1, max_line_count: int = 0):
     """
     Generates the most common prefix sequences along with their counts in a fastq file.
     Outputs dictionary containing counts for each generated MCP in the fastq.
@@ -201,18 +185,18 @@ def fetch_mcp(fastq, prefix_len, start=1, rev=False, max_line_count=None):
 
     selected_lines = []
 
-    with gzip.open(fastq, "rt") as file:
-        for i, line in enumerate(file):
-            line = line.strip()
-            if i % 4 == 1:
-                if not rev:
-                    selected_lines.append(line[start - 1 : start + prefix_len - 1])
-                else:
-                    rev_line = line[::-1]
-                    selected_lines.append(rev_line[start - 1 : start + prefix_len - 1])
-            if max_line_count is not None:
-                if len(selected_lines) > max_line_count:
-                    break
+    fastq = pyfastx.Fastq(str(input_fastq), build_index=False)
+
+    for read in fastq:
+        sequence = read[1] # the read sequence is the second element
+        if not rev:
+            selected_lines.append(sequence[start - 1 : start + prefix_len - 1])
+        else:
+            rev_sequence = sequence[::-1]
+            selected_lines.append(rev_sequence[start - 1 : start + prefix_len - 1])
+        if max_line_count != 0:
+            if len(selected_lines) > max_line_count:
+                break
 
     sequence_counts = Counter(selected_lines)
     mcp_count_dict = dict(

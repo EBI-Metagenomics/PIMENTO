@@ -19,3 +19,6 @@ MCP_MAX_LINE_COUNT = 300_000
 
 # used by pimento.standard_primer_strategy
 MIN_STD_PRIMER_THRESHOLD = 0.60
+
+# used by bin.standard_primer_matching.run_primer_matching_once
+STD_PRIMER_READ_PREFIX_LENGTH = 50

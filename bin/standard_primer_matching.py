@@ -25,11 +25,13 @@ import regex
 from bin.amplicon_utils import (
     primer_regex_query_builder,
     get_read_count,
-    fetch_mcp,
+    fetch_read_substrings,
 )
 
+from bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH
 
-def parse_std_primers(primers_dir: Path):
+
+def parse_std_primers(primers_dir: Path) -> tuple[defaultdict, defaultdict]:
     """
     Parse the library of standard primers.
 
@@ -77,7 +79,7 @@ def run_primer_matching_once(input_path, input_primer, rev=False):
 
     match_count = 0.0
 
-    mcp_count_dict = fetch_mcp(input_path, 50, rev=rev)
+    mcp_count_dict = fetch_read_substrings(input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev)
 
     for mcp in mcp_count_dict.keys():
         mcp = mcp.strip()
@@ -88,7 +90,7 @@ def run_primer_matching_once(input_path, input_primer, rev=False):
     return match_count
 
 
-def get_primer_props(std_primer_dict_regex, input_path, min_std_primer_threshold):
+def get_primer_props(std_primer_dict_regex: defaultdict, input_fastq: Path, min_std_primer_threshold: float) -> list[str, dict]:
     """
     Look for the standard primers in the input fastq file.
 
@@ -103,7 +105,7 @@ def get_primer_props(std_primer_dict_regex, input_path, min_std_primer_threshold
     """
 
     read_count = get_read_count(
-        input_path, file_type="fastq"
+        input_fastq, file_type="fastq"
     )  # Get read count of fastq file to calculate proportion with
     res_dict = defaultdict(defaultdict)
 
@@ -118,13 +120,13 @@ def get_primer_props(std_primer_dict_regex, input_path, min_std_primer_threshold
             region_name_str = f"{region};{primer_name}"
             primer_count = 0.0
 
-            if "F" in primer_name:
+            if primer_name[-1] == "F":
                 primer_count = run_primer_matching_once(
-                    input_path, primer_seq, rev=False
+                    input_fastq, primer_seq, rev=False
                 )  # Get proportion of a F primer with fuzzy regex matching
-            elif "R" in primer_name:
+            elif primer_name[-1] == "R":
                 primer_count = run_primer_matching_once(
-                    input_path, primer_seq, rev=True
+                    input_fastq, primer_seq, rev=True
                 )  # Get proportion of a R primer with fuzzy regex matching
 
             try:
