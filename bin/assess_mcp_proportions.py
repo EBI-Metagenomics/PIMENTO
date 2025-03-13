@@ -20,13 +20,13 @@ from collections import defaultdict
 import pandas as pd
 import numpy as np
 
-from mgnify_pipelines_toolkit.analysis.amplicon.amplicon_utils import (
+from bin.amplicon_utils import (
     get_read_count,
     build_cons_seq,
     build_mcp_cons_dict_list,
-    fetch_mcp,
+    fetch_read_substrings,
 )
-from mgnify_pipelines_toolkit.constants.thresholds import MCP_MAX_LINE_COUNT
+from bin.thresholds import MCP_MAX_LINE_COUNT
 
 
 def parse_args():
@@ -91,12 +91,12 @@ def find_mcp_props_for_sample(path, rev=False):
             path, file_type="fastq"
         )  # get read count for fastq file
 
-        max_line_count = None
+        max_line_count = 0
         if read_count > MCP_MAX_LINE_COUNT:
             max_line_count = MCP_MAX_LINE_COUNT
 
-        mcp_count_dict = fetch_mcp(
-            path, end, start, rev, max_line_count
+        mcp_count_dict = fetch_read_substrings(
+            path, mcp_len, rev, start, max_line_count
         )  # get MCP count dict
         mcp_cons_list = build_mcp_cons_dict_list(
             mcp_count_dict, mcp_len
