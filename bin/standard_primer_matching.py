@@ -15,7 +15,9 @@
 # limitations under the License.
 
 from collections import defaultdict
-import os
+from pathlib import Path
+import fileinput
+import pyfastx
 
 from Bio.Seq import Seq
 import regex
@@ -27,7 +29,7 @@ from bin.amplicon_utils import (
 )
 
 
-def parse_std_primers(primers):
+def parse_std_primers(primers_dir: Path):
     """
     Parse the library of standard primers.
 
@@ -46,30 +48,20 @@ def parse_std_primers(primers):
     std_primer_dict_regex = defaultdict(defaultdict)
     std_primer_dict = defaultdict(defaultdict)
 
-    dir = os.listdir(primers)
-    dir = [f"{primers}/{path}" for path in dir]
+    primer_files = list(primers_dir.glob("*.fasta"))
 
-    rev_flag = False
+    for primer_file in primer_files:
+        region = primer_file.stem
+        primer_fasta = pyfastx.Fasta(str(primer_file))
 
-    for path in dir:
-        region = path.split("/")[-1].split(".")[0]
-        with open(path, "r") as fr:
-            key = ""
-            for line in fr:
-                line = line.strip()
-                if line[0] == ">":
-                    if "R" in line:  # If a primer is a reverse primer
-                        rev_flag = True
-                    key = line[1:]
-                else:
-                    if rev_flag:
-                        rev_conv = str(Seq(line).complement())
-                        line = rev_conv
-                        rev_flag = False
+        for primer in primer_fasta:
+            primer_seq = primer.seq
+            if primer.name[-1] == "R":
+                primer_seq = primer.complement
 
-                    primer = primer_regex_query_builder(line)
-                    std_primer_dict_regex[region][key] = primer
-                    std_primer_dict[region][key] = line
+            primer_regex = primer_regex_query_builder(primer_seq)
+            std_primer_dict_regex[region][primer.name] = primer_regex
+            std_primer_dict[region][primer.name] = primer_seq
 
     return std_primer_dict_regex, std_primer_dict
 
