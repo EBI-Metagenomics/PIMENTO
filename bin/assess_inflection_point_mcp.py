@@ -23,7 +23,7 @@ import pandas as pd
 from bin.amplicon_utils import (
     get_read_count,
     build_cons_seq,
-    build_mcp_cons_dict_list,
+    build_read_substring_cons_dict_list,
     fetch_read_substrings,
 )
 from bin.thresholds import MCP_MAX_LINE_COUNT
@@ -95,7 +95,7 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
         mcp_count_dict = fetch_read_substrings(
             path, mcp_len, rev=rev, max_line_count=max_line_count
         )  # get MCP count dict
-        mcp_cons_list = build_mcp_cons_dict_list(
+        mcp_cons_list = build_read_substring_cons_dict_list(
             mcp_count_dict, mcp_len
         )  # list of base conservation dicts for mcps
         cons_seq, cons_confs = build_cons_seq(
@@ -119,7 +119,7 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
         mcp_count_dict = fetch_read_substrings(
             path, subs_len, rev, mcp_len, max_line_count=max_line_count
         )
-        mcp_cons_list = build_mcp_cons_dict_list(mcp_count_dict, subs_len)
+        mcp_cons_list = build_read_substring_cons_dict_list(mcp_count_dict, subs_len)
         cons_seq, cons_confs = build_cons_seq(
             mcp_cons_list,
             read_count,
