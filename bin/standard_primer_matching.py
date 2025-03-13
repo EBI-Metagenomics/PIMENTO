@@ -14,48 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 from collections import defaultdict
 import os
 
 from Bio.Seq import Seq
 import regex
 
-from mgnify_pipelines_toolkit.analysis.amplicon.amplicon_utils import (
+from bin.amplicon_utils import (
     primer_regex_query_builder,
     get_read_count,
     fetch_mcp,
 )
-
-
-def parse_args():
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "-i",
-        "--input",
-        required=True,
-        type=str,
-        help="Path to merged FASTQ to look for primers",
-    )
-    parser.add_argument(
-        "-p",
-        "--primers",
-        required=True,
-        type=str,
-        help="Path to directory containing standard primers fasta files",
-    )
-    parser.add_argument("-s", "--sample", required=True, type=str, help="Sample ID")
-    parser.add_argument("-o", "--output", required=True, type=str, help="Output path")
-    args = parser.parse_args()
-
-    input = args.input
-    primers = args.primers
-    sample = args.sample
-    output = args.output
-
-    return input, primers, sample, output
 
 
 def parse_std_primers(primers):
@@ -127,7 +96,7 @@ def run_primer_matching_once(input_path, input_primer, rev=False):
     return match_count
 
 
-def get_primer_props(std_primer_dict_regex, input_path):
+def get_primer_props(std_primer_dict_regex, input_path, min_std_primer_threshold):
     """
     Look for the standard primers in the input fastq file.
 
@@ -141,7 +110,6 @@ def get_primer_props(std_primer_dict_regex, input_path):
         max_primers: dictionary containing the F and/or R primers that were chosen
     """
 
-    threshold = 0.60  # Arbitrary threshold for collecting a matched primer
     read_count = get_read_count(
         input_path, file_type="fastq"
     )  # Get read count of fastq file to calculate proportion with
@@ -174,12 +142,12 @@ def get_primer_props(std_primer_dict_regex, input_path):
 
             if "F" in primer_name:
                 if (
-                    primer_prop > threshold
+                    primer_prop > min_std_primer_threshold
                 ):  # Only collect primer if it's above threshold
                     res_dict[region]["F"][primer_name] = primer_prop
             elif "R" in primer_name:
                 if (
-                    primer_prop > threshold
+                    primer_prop > min_std_primer_threshold
                 ):  # Only collect primer if it's above threshold
                     res_dict[region]["R"][primer_name] = primer_prop
 
@@ -268,14 +236,14 @@ def get_primer_props(std_primer_dict_regex, input_path):
         return [max_region, max_primers]
 
 
-def save_out(results, sample_id, output, std_primer_dict):
+def save_out(results, output_prefix, std_primer_dict):
     """
     Save found std primers into a fasta file.
     """
 
     with (
-        open(f"{output}/{sample_id}_std_primer_out.txt", "w") as fw_out,
-        open(f"{output}/{sample_id}_std_primers.fasta", "w") as fw_seq,
+        open(f"{output_prefix}_std_primer_out.txt", "w") as fw_out,
+        open(f"{output_prefix}_std_primers.fasta", "w") as fw_seq,
     ):
         if results == []:
             fw_out.write("")
@@ -309,19 +277,3 @@ def save_out(results, sample_id, output, std_primer_dict):
 
             fw_seq.write(f">{f_primer_name}\n{f_seq}\n")
             fw_seq.write(f">{r_primer_name}\n{r_seq}\n")
-
-
-def main():
-
-    input, primers, sample, output = parse_args()
-    std_primer_dict_regex, std_primer_dict = parse_std_primers(
-        primers
-    )  # Parse std primer library into dictionaries
-    results = get_primer_props(
-        std_primer_dict_regex, input
-    )  # Find all the std primers in the input and select most common
-    save_out(results, sample, output, std_primer_dict)
-
-
-if __name__ == "__main__":
-    main()
