@@ -17,7 +17,6 @@
 from collections import defaultdict, Counter
 from pathlib import Path
 import logging
-import os
 import pyfastx
 
 from bin.regex_ambiguous_bases import (
@@ -26,6 +25,7 @@ from bin.regex_ambiguous_bases import (
 )
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 def get_read_count(read_path: Path, file_type: str = "fastq") -> int:
     """
@@ -177,7 +177,13 @@ def build_mcp_cons_dict_list(mcp_count_dict, mcp_len):
     return mcp_cons_list
 
 
-def fetch_read_substrings(input_fastq: Path, prefix_len: int, rev: bool = False, start: int = 1, max_line_count: int = 0):
+def fetch_read_substrings(
+    input_fastq: Path,
+    prefix_len: int,
+    rev: bool = False,
+    start: int = 1,
+    max_line_count: int = 0,
+):
     """
     Generates the most common prefix sequences along with their counts in a fastq file.
     Outputs dictionary containing counts for each generated MCP in the fastq.
@@ -188,7 +194,7 @@ def fetch_read_substrings(input_fastq: Path, prefix_len: int, rev: bool = False,
     fastq = pyfastx.Fastq(str(input_fastq), build_index=False)
 
     for read in fastq:
-        sequence = read[1] # the read sequence is the second element
+        sequence = read[1]  # the read sequence is the second element
         if not rev:
             selected_lines.append(sequence[start - 1 : start + prefix_len - 1])
         else:

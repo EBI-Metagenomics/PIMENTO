@@ -16,7 +16,6 @@
 
 from collections import defaultdict
 from pathlib import Path
-import fileinput
 import pyfastx
 
 from Bio.Seq import Seq
@@ -79,7 +78,9 @@ def run_primer_matching_once(input_path, input_primer, rev=False):
 
     match_count = 0.0
 
-    mcp_count_dict = fetch_read_substrings(input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev)
+    mcp_count_dict = fetch_read_substrings(
+        input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev
+    )
 
     for mcp in mcp_count_dict.keys():
         mcp = mcp.strip()
@@ -90,7 +91,11 @@ def run_primer_matching_once(input_path, input_primer, rev=False):
     return match_count
 
 
-def get_primer_props(std_primer_dict_regex: defaultdict, input_fastq: Path, min_std_primer_threshold: float) -> list[str, dict]:
+def get_primer_props(
+    std_primer_dict_regex: defaultdict,
+    input_fastq: Path,
+    min_std_primer_threshold: float,
+) -> list[str, dict]:
     """
     Look for the standard primers in the input fastq file.
 
