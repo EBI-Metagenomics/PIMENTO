@@ -22,3 +22,7 @@ MIN_STD_PRIMER_THRESHOLD = 0.60
 
 # used by bin.standard_primer_matching.run_primer_matching_once
 STD_PRIMER_READ_PREFIX_LENGTH = 50
+
+# used by bin.are_there_primers.atp_in_this_sample
+ATP_WINDOW_SIZE = 10
+ATP_PREFIX_LENGTH = 100

@@ -157,24 +157,26 @@ def primer_regex_query_builder(primer):
     return query
 
 
-def build_mcp_cons_dict_list(mcp_count_dict, mcp_len):
+def build_read_substring_cons_dict_list(
+    read_substring_count_dict: dict, prefix_len: int
+) -> list[defaultdict[int]]:
     """
     Generate list of dictionaries of base conservation for mcp output (mcp_cons_list)
     e.g. [{'A':0.9, 'C':0.1}, {'T':1.0}, ....] for every base position
     """
 
-    mcp_cons_list = []
+    substring_cons_list = []
 
-    for i in range(mcp_len):
+    for i in range(prefix_len):
         index_base_dict = defaultdict(int)
-        for mcp in mcp_count_dict.keys():
-            if len(mcp) < mcp_len:
+        for substring in read_substring_count_dict.keys():
+            if len(substring) < prefix_len:
                 continue
-            base = mcp[i]
-            index_base_dict[base] += mcp_count_dict[mcp]
-        mcp_cons_list.append(index_base_dict)
+            base = substring[i]
+            index_base_dict[base] += read_substring_count_dict[substring]
+        substring_cons_list.append(index_base_dict)
 
-    return mcp_cons_list
+    return substring_cons_list
 
 
 def fetch_read_substrings(
@@ -183,7 +185,7 @@ def fetch_read_substrings(
     rev: bool = False,
     start: int = 1,
     max_line_count: int = 0,
-):
+) -> dict:
     """
     Generates the most common prefix sequences along with their counts in a fastq file.
     Outputs dictionary containing counts for each generated MCP in the fastq.
@@ -205,8 +207,8 @@ def fetch_read_substrings(
                 break
 
     sequence_counts = Counter(selected_lines)
-    mcp_count_dict = dict(
+    substring_count_dict = dict(
         sorted(sequence_counts.items(), key=lambda x: x[1], reverse=True)
     )
 
-    return mcp_count_dict
+    return substring_count_dict

@@ -69,7 +69,7 @@ def parse_std_primers(
     return std_primer_dict_regex, std_primer_dict
 
 
-def run_primer_matching_once(input_path, input_primer, rev=False):
+def run_primer_matching_once(input_path: Path, input_primer: str, rev: bool = False):
     """
     Run primer matching using the regex package.
 
@@ -237,7 +237,7 @@ def get_primer_props(
         return [max_region, max_primers]
 
 
-def write_output(
+def write_std_output(
     results: list[str, dict], output_prefix: str, std_primer_dict: defaultdict
 ) -> None:
     """

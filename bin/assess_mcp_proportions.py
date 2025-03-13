@@ -23,7 +23,7 @@ import numpy as np
 from bin.amplicon_utils import (
     get_read_count,
     build_cons_seq,
-    build_mcp_cons_dict_list,
+    build_read_substring_cons_dict_list,
     fetch_read_substrings,
 )
 from bin.thresholds import MCP_MAX_LINE_COUNT
@@ -83,10 +83,6 @@ def find_mcp_props_for_sample(path, rev=False):
 
     for start in start_range:
 
-        end = (
-            start + mcp_len - 1
-        )  # compute the final index for the mcp (inclusive). Indices are of base 1 not 0.
-
         read_count = get_read_count(
             path, file_type="fastq"
         )  # get read count for fastq file
@@ -98,7 +94,7 @@ def find_mcp_props_for_sample(path, rev=False):
         mcp_count_dict = fetch_read_substrings(
             path, mcp_len, rev, start, max_line_count
         )  # get MCP count dict
-        mcp_cons_list = build_mcp_cons_dict_list(
+        mcp_cons_list = build_read_substring_cons_dict_list(
             mcp_count_dict, mcp_len
         )  # list of base conservation dicts for mcps
         cons_seq, cons_conf = build_cons_seq(
