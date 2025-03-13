@@ -15,14 +15,15 @@
 # limitations under the License.
 
 from collections import defaultdict, Counter
+from pathlib import Path
 import logging
 import gzip
 import os
 import pyfastx
 
-from mgnify_pipelines_toolkit.constants.regex_ambiguous_bases import (
-    _AMBIGUOUS_BASES_DICT,
-    _AMBIGUOUS_BASES_DICT_REV,
+from bin.regex_ambiguous_bases import (
+    AMBIGUOUS_BASES_DICT,
+    AMBIGUOUS_BASES_DICT_REV,
 )
 
 logging.basicConfig(level=logging.DEBUG)
@@ -42,12 +43,12 @@ def split_dir_into_sample_paths(dir):
     return sample_list
 
 
-def get_read_count(read_path: str, file_type: str = "fastq") -> int:
+def get_read_count(read_path: Path, file_type: str = "fastq") -> int:
     """
     Get the read count of a FASTQ or FASTA file.
 
     :param read_path: The path to the FASTQ or FASTA file.
-    :type read_path: str
+    :type read_path: Path
     :param fasta_type: The type of the file, either "fastq" or "fasta". Defaults to "fastq".
     :type fasta_type: str
     :return: The number of reads in the file.
@@ -57,10 +58,10 @@ def get_read_count(read_path: str, file_type: str = "fastq") -> int:
     read_count = 0
 
     if file_type == "fasta":
-        fasta = pyfastx.Fasta(read_path, build_index=False)
+        fasta = pyfastx.Fasta(str(read_path), build_index=False)
         read_count = sum(1 for _ in fasta)
     elif file_type == "fastq":
-        fastq = pyfastx.Fastq(read_path, build_index=False)
+        fastq = pyfastx.Fastq(str(read_path), build_index=False)
         read_count = sum(1 for _ in fastq)
     else:
         raise ValueError(
@@ -141,7 +142,7 @@ def build_cons_seq(
                 cons_seq += cons_bases[0]
             else:
                 amb_string = ",".join(cons_bases)
-                amb_base = _AMBIGUOUS_BASES_DICT_REV[amb_string]
+                amb_base = AMBIGUOUS_BASES_DICT_REV[amb_string]
                 cons_seq += amb_base
 
         except ZeroDivisionError:
@@ -165,7 +166,7 @@ def primer_regex_query_builder(primer):
         if char in ("A", "C", "T", "G"):
             query += char
         else:
-            query += str(_AMBIGUOUS_BASES_DICT[char])
+            query += str(AMBIGUOUS_BASES_DICT[char])
 
     query = f"(.*{query}){{e<=1}}"
 
