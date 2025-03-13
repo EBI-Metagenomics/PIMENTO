@@ -1,0 +1,60 @@
+[project]
+name = "pimento"
+version = "0.0.1"
+readme = "README.md"
+license = {text = "Apache Software License 2.0"}
+authors = [
+  { name = "MGnify team", email = "metagenomics-help@ebi.ac.uk" },
+]
+keywords = ["bioinformatics", "pipelines", "metagenomics", "primers", "reads", "sequencing"]
+description = "A PrIMEr infereNce TOolkit to facilitate large-scale calling of metabarcoding amplicon sequence variants"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "numpy==1.26.0",
+    "pandas==2.0.2",
+    "regex==2023.12.25",
+    "click==8.1.7",
+    "pyfastx>=2.2.0"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["bin"]
+
+[project.scripts]
+are_there_primers = "bin.are_there_primers:main"
+assess_inflection_point_mcp = "bin.assess_inflection_point_mcp:main"
+assess_mcp_proportions = "bin.assess_mcp_proportions:main"
+find_mcp_inflection_points = "bin.find_mcp_inflection_points:main"
+standard_primer_matching = "bin.standard_primer_matching:main"
+get_pimento_version = "bin.get_pimento_version:main"
+
+[project.optional-dependencies]
+tests = [
+    "pytest==7.4.0",
+    "pytest-md==0.2.0",
+    "pytest-workflow==2.0.1",
+    "pandas==2.0.2",
+    "numpy==1.26.0",
+    "regex==2023.12.25",
+    "click==8.1.7",
+    "pyfastx>=2.2.0",
+
+]
+
+dev = [
+    "pimento[tests]",
+    "pre-commit==3.8.0",
+    "black==24.8.0",
+    "flake8==7.1.1",
+    "pep8-naming==0.14.1"
+]

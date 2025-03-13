@@ -1,0 +1,15 @@
+- name: standard_primer_matching test_wrong_args
+  tags:
+    - standard_primer_matching
+  exit_code: 2
+  command: python -m bin.standard_primer_matching --chromosome X
+  stderr:
+    contains:
+      - "standard_primer_matching.py: error: the following arguments are required: -i/--input, -p/--primers, -s/--sample, -o/--output"
+- name: standard_primer_matching test_correct_args
+  tags:
+    - standard_primer_matching
+  command: python -m mgnify_pipelines_toolkit.analysis.amplicon.standard_primer_matching -i tests/fixtures/sequences/test.fastq.gz -p tests/fixtures/sequences/standard_primers -s sample -o ./
+  files:
+    - path: "sample_std_primers.fasta"
+      md5sum: f26cdc22a5231d2dbd0831f1f1983dc6
