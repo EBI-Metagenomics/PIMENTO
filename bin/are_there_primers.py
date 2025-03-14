@@ -27,7 +27,7 @@ from bin.amplicon_utils import (
 from bin.thresholds import ATP_WINDOW_SIZE, ATP_PREFIX_LENGTH
 
 
-def atp_in_this_sample(input_fastq: Path, rev: bool = False):
+def atp_in_this_sample(input_fastq: Path, rev: bool = False) -> bool:
     """
     Predict the presence of primers based on windows of base conservation.
 
@@ -98,7 +98,7 @@ def atp_in_this_sample(input_fastq: Path, rev: bool = False):
     return primer_flag
 
 
-def write_atp_output(results, output_prefix):
+def write_atp_output(results: tuple[bool, bool], output_prefix: str) -> None:
     """
     Save primer presence flags into output .txt file.
 

@@ -16,6 +16,8 @@
 
 # used by bin.amplicon_utils.fetch_mcp
 MCP_MAX_LINE_COUNT = 300_000
+# used by bin.amplicon_utils.build_cons_seq
+CONSENSUS_BASE_THRESHOLD = 0.80
 
 # used by pimento.standard_primer_strategy
 MIN_STD_PRIMER_THRESHOLD = 0.60
