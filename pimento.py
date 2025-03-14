@@ -1,6 +1,7 @@
 from pathlib import Path
 import click
 
+from bin.assess_mcp_proportions import concat_out, find_mcp_props_for_sample
 from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 from bin.standard_primer_matching import (
     get_primer_props,
@@ -103,6 +104,57 @@ def are_there_primers(input_fastq: Path, output_prefix: str) -> None:
     write_atp_output(
         (fwd_status, rev_status), output_prefix
     )  # Save primer flags to .txt file
+
+
+@cli.command(
+    "gen_bcv",
+    options_metavar="-i <fastq/fastq.gz> -st [FR/F/R] -o <output_prefix>",
+    short_help="Generate the base-conservation vector(s) (BCV)",
+)
+@click.option(
+    "-i",
+    "--input_fastq",
+    required=True,
+    help="Input fastq file to generate the BCV for.",
+    type=click.Path(exists=True, path_type=Path, dir_okay=False),
+)
+@click.option(
+    "-st",
+    "--strand",
+    help="The strand(s) to generate a BCV for. Values can be either F, R, or FR for both.",
+    type=click.Choice(["FR", "F", "R"]),
+    required=True,
+)
+@click.option(
+    "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
+)
+def generate_base_conservation_vector(
+    input_fastq: Path, strand: str, output_prefix: str
+) -> None:
+    res_df = ""
+
+    # TODO: match-case statement is python 3.10>. We are currently locking the version
+    # at version 3.9. The day we bump the version we should replace these if statements
+    # with a match-case block.
+
+    if strand == "FR":
+        fwd_out = find_mcp_props_for_sample(input_fastq)
+        rev_out = find_mcp_props_for_sample(input_fastq, rev=True)
+        res_df = concat_out(fwd_out, rev_out)
+    elif strand == "F":
+        fwd_out = find_mcp_props_for_sample(input_fastq)
+        res_df = concat_out(fwd_out)
+    elif strand == "R":
+        rev_out = find_mcp_props_for_sample(input_fastq, rev=True)
+        res_df = concat_out(rev_out=rev_out)
+    else:
+        print(
+            "Incorrect strand input. Should be F for forward, R for reverse, or FR for both."
+        )
+        exit(1)
+
+    # Save resulting dataframe to a tsv file
+    res_df.to_csv(f"{output_prefix}_mcp_cons.tsv", sep="\t")
 
 
 if __name__ == "__main__":

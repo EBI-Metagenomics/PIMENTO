@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 from collections import defaultdict
 
 import pandas as pd
@@ -27,37 +26,6 @@ from bin.amplicon_utils import (
     fetch_read_substrings,
 )
 from bin.thresholds import MCP_MAX_LINE_COUNT
-
-
-def parse_args():
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "-i",
-        "--input",
-        required=True,
-        type=str,
-        help="Path to fastq file to assess mcps",
-    )
-    parser.add_argument("-s", "--sample", required=True, type=str, help="Sample ID")
-    parser.add_argument(
-        "-st",
-        "--strand",
-        required=True,
-        choices=["FR", "F", "R"],
-        help="F: Forward, R: Reverse",
-    )
-    parser.add_argument("-o", "--output", required=True, type=str, help="Output path")
-
-    args = parser.parse_args()
-
-    path = args.input
-    sample = args.sample
-    strand = args.strand
-    output = args.output
-
-    return path, sample, strand, output
 
 
 def find_mcp_props_for_sample(path, rev=False):
@@ -91,17 +59,17 @@ def find_mcp_props_for_sample(path, rev=False):
         if read_count > MCP_MAX_LINE_COUNT:
             max_line_count = MCP_MAX_LINE_COUNT
 
-        mcp_count_dict = fetch_read_substrings(
+        read_substring_count_dict = fetch_read_substrings(
             path, mcp_len, rev, start, max_line_count
         )  # get MCP count dict
-        mcp_cons_list = build_list_of_base_counts(
-            mcp_count_dict, mcp_len
+        base_counts = build_list_of_base_counts(
+            read_substring_count_dict, mcp_len
         )  # list of base conservation dicts for mcps
-        cons_seq, cons_conf = compute_windowed_base_conservation(
-            mcp_cons_list, read_count, max_line_count=max_line_count
+        base_conservation, cons_seq = compute_windowed_base_conservation(
+            base_counts, read_count, max_line_count=max_line_count
         )  # get list of max base conservations for each index
 
-        res_dict[start] = np.mean(cons_conf)  # compute the mean
+        res_dict[start] = np.mean(base_conservation)  # compute the mean
 
     return res_dict
 
@@ -135,37 +103,3 @@ def concat_out(fwd_out="", rev_out=""):
     res_df.index = df_ind
 
     return res_df
-
-
-def main():
-
-    path, sample, strand, output = parse_args()
-
-    res_df = ""
-
-    # TODO: match-case statement is python 3.10>. We are currently locking the version
-    # at version 3.9. The day we bump the version we should replace these if statements
-    # with a match-case block.
-
-    if strand == "FR":
-        fwd_out = find_mcp_props_for_sample(path)
-        rev_out = find_mcp_props_for_sample(path, rev=True)
-        res_df = concat_out(fwd_out, rev_out)
-    elif strand == "F":
-        fwd_out = find_mcp_props_for_sample(path)
-        res_df = concat_out(fwd_out)
-    elif strand == "R":
-        rev_out = find_mcp_props_for_sample(path, rev=True)
-        res_df = concat_out(rev_out=rev_out)
-    else:
-        print(
-            "Incorrect strand input. Should be F for forward, R for reverse, or FR for both."
-        )
-        exit(1)
-
-    # Save resulting dataframe to a tsv file
-    res_df.to_csv(f"{output}/{sample}_mcp_cons.tsv", sep="\t")
-
-
-if __name__ == "__main__":
-    main()
