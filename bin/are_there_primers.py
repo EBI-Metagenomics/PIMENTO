@@ -19,8 +19,8 @@ import numpy as np
 
 from bin.amplicon_utils import (
     get_read_count,
-    build_cons_seq,
-    build_read_substring_cons_dict_list,
+    compute_windowed_base_conservation,
+    build_list_of_base_counts,
     fetch_read_substrings,
 )
 
@@ -50,11 +50,11 @@ def atp_in_this_sample(input_fastq: Path, rev: bool = False) -> bool:
     read_substring_count_dict = fetch_read_substrings(
         input_fastq, ATP_PREFIX_LENGTH, rev=rev
     )  # mcp dict where key is the mcp and value is the count
-    read_substring_cons_list = build_read_substring_cons_dict_list(
+    base_counts = build_list_of_base_counts(
         read_substring_count_dict, ATP_PREFIX_LENGTH
     )  # list of base conservation dicts for mcps
-    cons_seq, cons_confs = build_cons_seq(
-        read_substring_cons_list, read_count
+    base_conservation, cons_seq = compute_windowed_base_conservation(
+        base_counts, read_count
     )  # get list of max base conservations for each index
 
     # Counter that will reset to 0 every 10 bases
@@ -62,7 +62,7 @@ def atp_in_this_sample(input_fastq: Path, rev: bool = False) -> bool:
     # Will append the window count to this list every 10 bases
     window_count_list = []
     # Compute Q3-based threshold
-    max_cons = np.quantile(cons_confs, 0.75)
+    max_cons = np.quantile(base_conservation, 0.75)
     threshold = max_cons - 0.15
 
     if max_cons < 0.75:
@@ -72,7 +72,7 @@ def atp_in_this_sample(input_fastq: Path, rev: bool = False) -> bool:
         return False
 
     # Loop through every base
-    for counter, val in enumerate(cons_confs):
+    for counter, val in enumerate(base_conservation):
         if (
             counter % ATP_WINDOW_SIZE == 0 and counter != 0
         ):  # After looping through a window..

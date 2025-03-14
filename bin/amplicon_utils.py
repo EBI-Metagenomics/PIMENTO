@@ -59,7 +59,7 @@ def get_read_count(read_path: Path, file_type: str = "fastq") -> int:
     return read_count
 
 
-def build_cons_seq(
+def compute_windowed_base_conservation(
     cons_list: list,
     read_count: int,
     cons_threshold: float = CONSENSUS_BASE_THRESHOLD,
@@ -75,7 +75,7 @@ def build_cons_seq(
     """
 
     cons_seq = ""
-    cons_confs = []
+    base_conservation = []
 
     for counter, count_dict in enumerate(cons_list, counter_start):
         max_count = 0
@@ -126,9 +126,9 @@ def build_cons_seq(
         except ZeroDivisionError:
             max_prop = 0.0
 
-        cons_confs.append(max_prop)
+        base_conservation.append(max_prop)
 
-    return cons_seq, cons_confs
+    return base_conservation, cons_seq
 
 
 def primer_regex_query_builder(primer):
@@ -151,12 +151,12 @@ def primer_regex_query_builder(primer):
     return query
 
 
-def build_read_substring_cons_dict_list(
+def build_list_of_base_counts(
     read_substring_count_dict: dict, prefix_len: int
 ) -> list[defaultdict[int]]:
     """
-    Generate list of dictionaries of base conservation for mcp output (mcp_cons_list)
-    e.g. [{'A':0.9, 'C':0.1}, {'T':1.0}, ....] for every base position
+    Generate list of dictionaries of base conservation counts for mcp output (mcp_cons_list)
+    e.g. [{'A':220, 'C':14}, {'T':234}, ....] for every base position
     """
 
     substring_cons_list = []

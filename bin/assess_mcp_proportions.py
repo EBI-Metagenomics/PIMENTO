@@ -22,8 +22,8 @@ import numpy as np
 
 from bin.amplicon_utils import (
     get_read_count,
-    build_cons_seq,
-    build_read_substring_cons_dict_list,
+    compute_windowed_base_conservation,
+    build_list_of_base_counts,
     fetch_read_substrings,
 )
 from bin.thresholds import MCP_MAX_LINE_COUNT
@@ -94,10 +94,10 @@ def find_mcp_props_for_sample(path, rev=False):
         mcp_count_dict = fetch_read_substrings(
             path, mcp_len, rev, start, max_line_count
         )  # get MCP count dict
-        mcp_cons_list = build_read_substring_cons_dict_list(
+        mcp_cons_list = build_list_of_base_counts(
             mcp_count_dict, mcp_len
         )  # list of base conservation dicts for mcps
-        cons_seq, cons_conf = build_cons_seq(
+        cons_seq, cons_conf = compute_windowed_base_conservation(
             mcp_cons_list, read_count, max_line_count=max_line_count
         )  # get list of max base conservations for each index
 
