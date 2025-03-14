@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # used by bin.amplicon_utils.fetch_mcp
-MCP_MAX_LINE_COUNT = 300_000
+MAX_READ_COUNT = 300_000
 # used by bin.amplicon_utils.build_cons_seq
 CONSENSUS_BASE_THRESHOLD = 0.80
 
@@ -28,3 +28,6 @@ STD_PRIMER_READ_PREFIX_LENGTH = 50
 # used by bin.are_there_primers.atp_in_this_sample
 ATP_WINDOW_SIZE = 10
 ATP_PREFIX_LENGTH = 100
+
+# used by bin.generate_bcv.generate_bcv_for_single_strand
+BCV_WINDOW_SIZE = 5
