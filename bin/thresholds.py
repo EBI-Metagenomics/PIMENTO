@@ -31,3 +31,7 @@ ATP_PREFIX_LENGTH = 100
 
 # used by bin.generate_bcv.generate_bcv_for_single_strand
 BCV_WINDOW_SIZE = 5
+
+# used by bin.find_cutoffs.find_bcv_inflection_points
+MIN_CUTOFF_WINDOW_START = 10
+MAX_CUTOFF_WINDOW_START = 20

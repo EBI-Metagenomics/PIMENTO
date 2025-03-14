@@ -1,5 +1,7 @@
 from pathlib import Path
+
 import click
+import pandas as pd
 
 from bin.standard_primer_matching import (
     get_primer_props,
@@ -8,6 +10,7 @@ from bin.standard_primer_matching import (
 )
 from bin.are_there_primers import atp_in_this_sample, write_atp_output
 from bin.generate_bcv import generate_bcv_for_single_strand, write_bcv_output
+from bin.find_cutoffs import find_bcv_inflection_points
 
 from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
@@ -151,7 +154,42 @@ def generate_base_conservation_vector(
         res_df = write_bcv_output(rev_out=rev_bcv)
 
     # Save resulting dataframe to a tsv file
-    res_df.to_csv(f"{output_prefix}_mcp_cons.tsv", sep="\t")
+    res_df.to_csv(f"{output_prefix}_bcv.tsv", sep="\t")
+
+
+@cli.command(
+    "find_cutoffs",
+    options_metavar="-i <bcv.tsv> -o <output_prefix>",
+    short_help="Find potential cutoffs using a BCV output.",
+)
+@click.option(
+    "-i",
+    "--input_bcv",
+    required=True,
+    help="Input BCV file to identify potential cutoffs for.",
+    type=click.Path(exists=True, path_type=Path, dir_okay=False),
+)
+@click.option(
+    "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
+)
+def find_potential_cutoffs(input_bcv: Path, output_prefix: str):
+
+    bcv_df = pd.read_csv(input_bcv, sep="\t", index_col=0)  # Read mcp_df
+    inf_point_dict = find_bcv_inflection_points(
+        bcv_df
+    )  # Generate inflection points dict
+
+    if len(inf_point_dict) > 0:  # If the inf_point_dict isn't empty..
+        inf_point_df = pd.DataFrame.from_dict(
+            inf_point_dict
+        )  # .. turn it into a dataframe
+        inf_point_df.to_csv(
+            f"{output_prefix}_cutoffs.tsv", sep="\t", index=False
+        )  # ..save it to a .tsv file
+
+    else:  # If it is empty..
+        fw = open(f"{output_prefix}_cutoffs.tsv", "w")  # ..make an empty file
+        fw.close()
 
 
 if __name__ == "__main__":

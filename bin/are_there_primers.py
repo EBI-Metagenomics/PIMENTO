@@ -17,7 +17,7 @@
 from pathlib import Path
 import numpy as np
 
-from bin.amplicon_utils import (
+from bin.pimento_utils import (
     get_read_count,
     compute_windowed_base_conservation,
     build_list_of_base_counts,

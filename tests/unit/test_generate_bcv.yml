@@ -11,12 +11,12 @@
     - generate_bcv
   command: python pimento.py gen_bcv -i tests/fixtures/test.fastq.gz -st FR -o sample
   files:
-    - path: "sample_mcp_cons.tsv"
+    - path: "sample_bcv.tsv"
       md5sum: 875c712aadf9b21bd535e555dbb4b7e1
 - name: generate_bcv test_large_file
   tags:
     - generate_bcv
   command: python pimento.py gen_bcv -i tests/fixtures/test_big.fastq.gz -st FR -o sample
   files:
-    - path: "sample_mcp_cons.tsv"
+    - path: "sample_bcv.tsv"
       md5sum: e4e43a0b9eb6c1c7d1cf9f10926b24c3

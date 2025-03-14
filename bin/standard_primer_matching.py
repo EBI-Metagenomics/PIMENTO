@@ -21,7 +21,7 @@ import pyfastx
 from Bio.Seq import Seq
 import regex
 
-from bin.amplicon_utils import (
+from bin.pimento_utils import (
     primer_regex_query_builder,
     get_read_count,
     fetch_read_substrings,
