@@ -22,8 +22,8 @@ import pandas as pd
 
 from bin.amplicon_utils import (
     get_read_count,
-    build_cons_seq,
-    build_read_substring_cons_dict_list,
+    compute_windowed_base_conservation,
+    build_list_of_base_counts,
     fetch_read_substrings,
 )
 from bin.thresholds import MCP_MAX_LINE_COUNT
@@ -95,10 +95,10 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
         mcp_count_dict = fetch_read_substrings(
             path, mcp_len, rev=rev, max_line_count=max_line_count
         )  # get MCP count dict
-        mcp_cons_list = build_read_substring_cons_dict_list(
+        mcp_cons_list = build_list_of_base_counts(
             mcp_count_dict, mcp_len
         )  # list of base conservation dicts for mcps
-        cons_seq, cons_confs = build_cons_seq(
+        base_conservation, cons_seq = compute_windowed_base_conservation(
             mcp_cons_list,
             read_count,
             n_prop,
@@ -107,7 +107,7 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
         )  # get list of max base conservations for each index
         # also get consensus sequence
         cons_seq_list.append(cons_seq)
-        start_confs.append(np.mean(cons_confs))
+        start_confs.append(np.mean(base_conservation))
         start_cons_lens.append(len(cons_seq))
 
     for i, end in enumerate(
@@ -119,8 +119,8 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
         mcp_count_dict = fetch_read_substrings(
             path, subs_len, rev, mcp_len, max_line_count=max_line_count
         )
-        mcp_cons_list = build_read_substring_cons_dict_list(mcp_count_dict, subs_len)
-        cons_seq, cons_confs = build_cons_seq(
+        mcp_cons_list = build_list_of_base_counts(mcp_count_dict, subs_len)
+        base_conservation, cons_seq = compute_windowed_base_conservation(
             mcp_cons_list,
             read_count,
             n_prop,
@@ -129,7 +129,7 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
             max_line_count=max_line_count,
         )
 
-        end_confs.append(np.mean(cons_confs))
+        end_confs.append(np.mean(base_conservation))
 
     diff_res = [
         start_confs[i] - end_confs[i] for i in range(len(start_confs))
