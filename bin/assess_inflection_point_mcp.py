@@ -26,7 +26,7 @@ from bin.amplicon_utils import (
     build_list_of_base_counts,
     fetch_read_substrings,
 )
-from bin.thresholds import MCP_MAX_LINE_COUNT
+from bin.thresholds import MAX_READ_COUNT
 
 
 def parse_args():
@@ -84,8 +84,8 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
     read_count = get_read_count(path)  # get readcount from fastq
 
     max_line_count = 0
-    if read_count > MCP_MAX_LINE_COUNT:
-        max_line_count = MCP_MAX_LINE_COUNT
+    if read_count > MAX_READ_COUNT:
+        max_line_count = MAX_READ_COUNT
 
     n_prop = 0.8
 

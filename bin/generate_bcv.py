@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from collections import defaultdict
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -25,10 +26,10 @@ from bin.amplicon_utils import (
     build_list_of_base_counts,
     fetch_read_substrings,
 )
-from bin.thresholds import MCP_MAX_LINE_COUNT
+from bin.thresholds import MAX_READ_COUNT, BCV_WINDOW_SIZE
 
 
-def find_mcp_props_for_sample(path, rev=False):
+def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict[float]:
     """
     Generate mcp proportions in a stepwise and windowed manner for a fastq file.
 
@@ -47,8 +48,6 @@ def find_mcp_props_for_sample(path, rev=False):
 
     print(f"Processing {path}")
 
-    mcp_len = 5  # length of generated mcps
-
     for start in start_range:
 
         read_count = get_read_count(
@@ -56,14 +55,14 @@ def find_mcp_props_for_sample(path, rev=False):
         )  # get read count for fastq file
 
         max_line_count = 0
-        if read_count > MCP_MAX_LINE_COUNT:
-            max_line_count = MCP_MAX_LINE_COUNT
+        if read_count > MAX_READ_COUNT:
+            max_line_count = MAX_READ_COUNT
 
         read_substring_count_dict = fetch_read_substrings(
-            path, mcp_len, rev, start, max_line_count
+            path, BCV_WINDOW_SIZE, rev, start, max_line_count
         )  # get MCP count dict
         base_counts = build_list_of_base_counts(
-            read_substring_count_dict, mcp_len
+            read_substring_count_dict, BCV_WINDOW_SIZE
         )  # list of base conservation dicts for mcps
         base_conservation, cons_seq = compute_windowed_base_conservation(
             base_counts, read_count, max_line_count=max_line_count
@@ -74,7 +73,9 @@ def find_mcp_props_for_sample(path, rev=False):
     return res_dict
 
 
-def concat_out(fwd_out="", rev_out=""):
+def write_bcv_output(
+    fwd_out: defaultdict[float] = {}, rev_out: defaultdict[float] = {}
+):
     """
     Generate Pandas dataframe out of mcp dictionary.
 
@@ -86,20 +87,20 @@ def concat_out(fwd_out="", rev_out=""):
     Columns are the starting indices. Row labels are the strand.
     """
 
-    total_res_dict = defaultdict(list)
+    final_res_dict = defaultdict(list)
     df_ind = []
 
     # Check if fwd strand was requested
-    if fwd_out != "":
-        [total_res_dict[key].append(fwd_out[key]) for key in fwd_out.keys()]
+    if fwd_out:
+        [final_res_dict[key].append(fwd_out[key]) for key in fwd_out.keys()]
         df_ind.append("F")
 
     # Check if rev strand was requested
-    if rev_out != "":
-        [total_res_dict[key].append(rev_out[key]) for key in rev_out.keys()]
+    if rev_out:
+        [final_res_dict[key].append(rev_out[key]) for key in rev_out.keys()]
         df_ind.append("R")
 
-    res_df = pd.DataFrame.from_dict(total_res_dict)
+    res_df = pd.DataFrame.from_dict(final_res_dict)
     res_df.index = df_ind
 
     return res_df

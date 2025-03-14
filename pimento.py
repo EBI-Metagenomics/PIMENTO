@@ -1,14 +1,15 @@
 from pathlib import Path
 import click
 
-from bin.assess_mcp_proportions import concat_out, find_mcp_props_for_sample
-from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 from bin.standard_primer_matching import (
     get_primer_props,
     parse_std_primers,
     write_std_output,
 )
 from bin.are_there_primers import atp_in_this_sample, write_atp_output
+from bin.generate_bcv import generate_bcv_for_single_strand, write_bcv_output
+
+from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
 
 @click.group()
@@ -131,6 +132,7 @@ def are_there_primers(input_fastq: Path, output_prefix: str) -> None:
 def generate_base_conservation_vector(
     input_fastq: Path, strand: str, output_prefix: str
 ) -> None:
+
     res_df = ""
 
     # TODO: match-case statement is python 3.10>. We are currently locking the version
@@ -138,20 +140,15 @@ def generate_base_conservation_vector(
     # with a match-case block.
 
     if strand == "FR":
-        fwd_out = find_mcp_props_for_sample(input_fastq)
-        rev_out = find_mcp_props_for_sample(input_fastq, rev=True)
-        res_df = concat_out(fwd_out, rev_out)
+        fwd_bcv = generate_bcv_for_single_strand(input_fastq)
+        rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
+        res_df = write_bcv_output(fwd_bcv, rev_bcv)
     elif strand == "F":
-        fwd_out = find_mcp_props_for_sample(input_fastq)
-        res_df = concat_out(fwd_out)
+        fwd_bcv = generate_bcv_for_single_strand(input_fastq)
+        res_df = write_bcv_output(fwd_bcv)
     elif strand == "R":
-        rev_out = find_mcp_props_for_sample(input_fastq, rev=True)
-        res_df = concat_out(rev_out=rev_out)
-    else:
-        print(
-            "Incorrect strand input. Should be F for forward, R for reverse, or FR for both."
-        )
-        exit(1)
+        rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
+        res_df = write_bcv_output(rev_out=rev_bcv)
 
     # Save resulting dataframe to a tsv file
     res_df.to_csv(f"{output_prefix}_mcp_cons.tsv", sep="\t")
