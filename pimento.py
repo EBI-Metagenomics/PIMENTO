@@ -11,6 +11,7 @@ from bin.standard_primer_matching import (
 from bin.are_there_primers import atp_in_this_sample, write_atp_output
 from bin.generate_bcv import generate_bcv_for_single_strand, write_bcv_output
 from bin.find_cutoffs import find_bcv_inflection_points
+from bin.choose_primer_cutoff import choose_cutoff_for_single_strand
 
 from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
@@ -190,6 +191,68 @@ def find_potential_cutoffs(input_bcv: Path, output_prefix: str):
     else:  # If it is empty..
         fw = open(f"{output_prefix}_cutoffs.tsv", "w")  # ..make an empty file
         fw.close()
+
+
+@cli.command(
+    "choose_primer_cutoff",
+    options_metavar="-i <fastq/fastq.gz> -p <cutoffs.tsv> -o <output_prefix>",
+    short_help="Choose the optimal primer cutoff point.",
+)
+@click.option(
+    "-i",
+    "--input_fastq",
+    required=True,
+    help="Input fastq file to choose the optimal primer cutoff point for.",
+    type=click.Path(exists=True, path_type=Path, dir_okay=False),
+)
+@click.option(
+    "-p",
+    "--primer_cutoffs",
+    required=True,
+    help="File containing the potential cutoff points to choose from.",
+    type=click.Path(exists=True, path_type=Path, dir_okay=False),
+)
+@click.option(
+    "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
+)
+def choose_primer_cutoff(input_fastq: Path, primer_cutoffs: Path, output_prefix: str):
+
+    cutoffs_df = pd.read_csv(primer_cutoffs, sep="\t")
+
+    f_slice = cutoffs_df[cutoffs_df.strand == "F"]  # get forward inflection points
+    r_slice = cutoffs_df[cutoffs_df.strand == "R"]  # get reverse inflection points
+    r_slice = r_slice.reset_index(drop=True)
+
+    f_cutoff = ""
+    r_cutoff = ""
+    f_primer = ""
+    r_primer = ""
+
+    if not f_slice.empty:  # if there is a forward inflection point..
+        cutoff_list = f_slice.inf_point.tolist()
+        f_cutoff, f_primer = choose_cutoff_for_single_strand(
+            input_fastq, cutoff_list
+        )  # .. assess and select
+
+    if not r_slice.empty:  # if there is a reverse inflection point..
+        cutoff_list = r_slice.inf_point.tolist()
+        r_cutoff, r_primer = choose_cutoff_for_single_strand(
+            input_fastq, cutoff_list, rev=True
+        )  # .. assess and select
+
+    # Output cutoff point(s) to .txt file
+    with open(f"{output_prefix}_chosen_cutoffs.txt", "w") as fw:
+        if f_cutoff != "":
+            fw.write(f"F: {f_cutoff}\n")
+        if r_cutoff != "":
+            fw.write(f"R: {r_cutoff}\n")
+
+    # Output consensus primer sequence(s) to .fasta file
+    with open(f"{output_prefix}_auto_primers.fasta", "w") as fw:
+        if f_cutoff != "":
+            fw.write(f">F_auto\n{f_primer}\n")
+        if r_cutoff != "":
+            fw.write(f">R_auto\n{r_primer}\n")
 
 
 if __name__ == "__main__":
