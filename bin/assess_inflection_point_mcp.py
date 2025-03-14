@@ -92,14 +92,14 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
     for start in inf_point_list:  # Looping through the pre-inflection point mcps
         mcp_len = start + 4  # length of pre-inf mcps is inflection point + 4
 
-        mcp_count_dict = fetch_read_substrings(
+        read_substring_count_dict = fetch_read_substrings(
             path, mcp_len, rev=rev, max_line_count=max_line_count
         )  # get MCP count dict
-        mcp_cons_list = build_list_of_base_counts(
-            mcp_count_dict, mcp_len
+        base_counts = build_list_of_base_counts(
+            read_substring_count_dict, mcp_len
         )  # list of base conservation dicts for mcps
         base_conservation, cons_seq = compute_windowed_base_conservation(
-            mcp_cons_list,
+            base_counts,
             read_count,
             n_prop,
             do_not_include_list,
@@ -116,12 +116,12 @@ def assess_inflection_point_mcp_for_sample(path, inf_point_list, rev=False):
         mcp_len = end + 5  # length of pre-inf mcps is inflection point + 5
         subs_len = start_cons_lens[i]  # length of respective pre-inf point sequence
 
-        mcp_count_dict = fetch_read_substrings(
+        read_substring_count_dict = fetch_read_substrings(
             path, subs_len, rev, mcp_len, max_line_count=max_line_count
         )
-        mcp_cons_list = build_list_of_base_counts(mcp_count_dict, subs_len)
+        base_counts = build_list_of_base_counts(read_substring_count_dict, subs_len)
         base_conservation, cons_seq = compute_windowed_base_conservation(
-            mcp_cons_list,
+            base_counts,
             read_count,
             n_prop,
             do_not_include_list,
