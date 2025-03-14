@@ -15,36 +15,13 @@
 # limitations under the License.
 
 from collections import defaultdict
-import argparse
 
-import pandas as pd
 import numpy as np
 
-
-def parse_args():
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "-i",
-        "--input",
-        required=True,
-        type=str,
-        help="Path to mcp tsv file to find inflection points",
-    )
-    parser.add_argument("-s", "--sample", required=True, type=str, help="Sample ID")
-    parser.add_argument("-o", "--output", required=True, type=str, help="Output path")
-
-    args = parser.parse_args()
-
-    path = args.input
-    sample = args.sample
-    output = args.output
-
-    return path, sample, output
+from bin.thresholds import MAX_CUTOFF_WINDOW_START, MIN_CUTOFF_WINDOW_START
 
 
-def find_mcp_inf_points(mcp_df):
+def find_bcv_inflection_points(mcp_df):
     """
     Find inflection points from an mcp_df file output by "assess_mcp_proportions_MERGED.py"
 
@@ -74,7 +51,8 @@ def find_mcp_inf_points(mcp_df):
             inf_point = start_indices[ind]
 
             if (
-                inf_point < 10 or inf_point > 20
+                inf_point < MIN_CUTOFF_WINDOW_START
+                or inf_point > MAX_CUTOFF_WINDOW_START
             ):  # Rule to facilitate results - won't accept
                 continue  # points below index 10 or above index 20
                 # 10 means a cutoff of 15 and 20 a cutoff of 25
@@ -85,27 +63,3 @@ def find_mcp_inf_points(mcp_df):
             inf_point_dict["inf_point"].append(inf_point)
 
     return inf_point_dict
-
-
-def main():
-
-    path, sample, output = parse_args()
-
-    mcp_df = pd.read_csv(path, sep="\t", index_col=0)  # Read mcp_df
-    inf_point_dict = find_mcp_inf_points(mcp_df)  # Generate inflection points dict
-
-    if len(inf_point_dict) > 0:  # If the inf_point_dict isn't empty..
-        inf_point_df = pd.DataFrame.from_dict(
-            inf_point_dict
-        )  # .. turn it into a dataframe
-        inf_point_df.to_csv(
-            f"{output}/{sample}_inf_points.tsv", sep="\t", index=False
-        )  # ..save it to a .tsv file
-
-    else:  # If it is empty..
-        fw = open(f"{output}/{sample}_inf_points.tsv", "w")  # ..make an empty file
-        fw.close()
-
-
-if __name__ == "__main__":
-    main()
