@@ -135,7 +135,7 @@ def are_there_primers(input_fastq: Path, output_prefix: str) -> None:
 )
 def generate_base_conservation_vector(
     input_fastq: Path, strand: str, output_prefix: str
-) -> None:
+) -> Path:
 
     res_df = ""
 
@@ -157,6 +157,8 @@ def generate_base_conservation_vector(
     # Save resulting dataframe to a tsv file
     res_df.to_csv(f"{output_prefix}_bcv.tsv", sep="\t")
 
+    return f"{output_prefix}_bcv.tsv"
+
 
 @cli.command(
     "find_cutoffs",
@@ -173,7 +175,7 @@ def generate_base_conservation_vector(
 @click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
-def find_potential_cutoffs(input_bcv: Path, output_prefix: str):
+def find_potential_cutoffs(input_bcv: Path, output_prefix: str) -> Path:
 
     bcv_df = pd.read_csv(input_bcv, sep="\t", index_col=0)  # Read mcp_df
     inf_point_dict = find_bcv_inflection_points(
@@ -191,6 +193,8 @@ def find_potential_cutoffs(input_bcv: Path, output_prefix: str):
     else:  # If it is empty..
         fw = open(f"{output_prefix}_cutoffs.tsv", "w")  # ..make an empty file
         fw.close()
+
+    return Path(f"{output_prefix}_cutoffs.tsv")
 
 
 @cli.command(
@@ -215,7 +219,9 @@ def find_potential_cutoffs(input_bcv: Path, output_prefix: str):
 @click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
-def choose_primer_cutoff(input_fastq: Path, primer_cutoffs: Path, output_prefix: str):
+def choose_primer_cutoff(
+    input_fastq: Path, primer_cutoffs: Path, output_prefix: str
+) -> Path:
 
     cutoffs_df = pd.read_csv(primer_cutoffs, sep="\t")
 
@@ -253,6 +259,57 @@ def choose_primer_cutoff(input_fastq: Path, primer_cutoffs: Path, output_prefix:
             fw.write(f">F_auto\n{f_primer}\n")
         if r_cutoff != "":
             fw.write(f">R_auto\n{r_primer}\n")
+
+    return Path(f"{output_prefix}_auto_primers.fasta")
+
+
+@cli.command(
+    "auto",
+    options_metavar="-i <fastq/fastq.gz> -o <output_prefix>",
+    short_help="Perform the primer cutoff strategy for primer inference",
+)
+@click.option(
+    "-i",
+    "--input_fastq",
+    required=True,
+    help="Input fastq file to perform primer inference on.",
+    type=click.Path(exists=True, path_type=Path, dir_okay=False),
+)
+@click.option(
+    "-st",
+    "--strand",
+    help="The strand(s) to generate a BCV for. Values can be either F, R, or FR for both.",
+    type=click.Choice(["FR", "F", "R"]),
+    required=True,
+)
+@click.option(
+    "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
+)
+@click.pass_context
+def primer_cutoff_strategy(
+    ctx,
+    input_fastq: Path,
+    strand: str,
+    output_prefix: str,
+) -> None:
+
+    bcv_df = ctx.invoke(
+        generate_base_conservation_vector,
+        input_fastq=input_fastq,
+        strand=strand,
+        output_prefix=output_prefix,
+    )
+    cutoffs_path = ctx.invoke(
+        find_potential_cutoffs, input_bcv=bcv_df, output_prefix=output_prefix
+    )
+    inferred_primer_seq_path = ctx.invoke(
+        choose_primer_cutoff,
+        input_fastq=input_fastq,
+        primer_cutoffs=cutoffs_path,
+        output_prefix=output_prefix,
+    )
+
+    print(inferred_primer_seq_path)
 
 
 if __name__ == "__main__":
