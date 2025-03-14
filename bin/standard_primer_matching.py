@@ -53,6 +53,7 @@ def parse_std_primers(
 
     primer_files = list(primers_dir.glob("*.fasta"))
 
+    primer_count = 0
     for primer_file in primer_files:
         region = primer_file.stem
         primer_fasta = pyfastx.Fasta(str(primer_file))
@@ -65,8 +66,9 @@ def parse_std_primers(
             primer_regex = primer_regex_query_builder(primer_seq)
             std_primer_dict_regex[region][primer.name] = primer_regex
             std_primer_dict[region][primer.name] = primer_seq
+            primer_count += 1
 
-    return std_primer_dict_regex, std_primer_dict
+    return std_primer_dict_regex, std_primer_dict, primer_count
 
 
 def run_primer_matching_once(input_path: Path, input_primer: str, rev: bool = False):
@@ -116,6 +118,8 @@ def get_primer_props(
     )  # Get read count of fastq file to calculate proportion with
     res_dict = defaultdict(defaultdict)
 
+    std_primer_log = open("all_standard_primer_proportions.txt", "w")
+
     # Loop through every primer region
     for region, primer in std_primer_dict_regex.items():
         res_dict[region]["F"] = {}
@@ -152,13 +156,15 @@ def get_primer_props(
                 ):  # Only collect primer if it's above threshold
                     res_dict[region]["R"][primer_name] = primer_prop
 
-            print(f"{region_name_str}: {primer_prop}")
+            std_primer_log.write(f"{region_name_str}:{primer_prop}\n")
 
         # If an F or/and R primer wasn't found then just remove that key from the dictionary
         if res_dict[region]["F"] == {}:
             res_dict[region].pop("F")
         if res_dict[region]["R"] == {}:
             res_dict[region].pop("R")
+
+    std_primer_log.close()
 
     singles = defaultdict(str)
     doubles = defaultdict(list)
@@ -220,20 +226,10 @@ def get_primer_props(
                 max_primers = {primer_name: prop}
 
     if max_region == "":
-        print("No standard library primers!")
         return []
     elif double_status:
-        print("Standard library primers found!")
-        print(f"Region: {max_region}")
-        print(f"Forward Primer: {max_primers[0]}")
-        print(f"Reverse Primer: {max_primers[1]}")
-
         return [max_region, max_primers[0], max_primers[1]]
     else:
-        print("Standard library primer found on one strand!")
-        print(f"Region: {max_region}")
-        print(f"Primer: {max_primers}")
-
         return [max_region, max_primers]
 
 
@@ -245,8 +241,8 @@ def write_std_output(
     """
 
     with (
-        open(f"{output_prefix}_std_primer_out.txt", "w") as fw_out,
         open(f"{output_prefix}_std_primers.fasta", "w") as fw_seq,
+        open(f"{output_prefix}_std_primer_out.txt", "w") as fw_out,
     ):
         if results == []:  # if no primers found
             fw_out.write("")
@@ -280,3 +276,7 @@ def write_std_output(
 
             fw_seq.write(f">{f_primer_name}\n{f_seq}\n")
             fw_seq.write(f">{r_primer_name}\n{r_seq}\n")
+
+    return Path(f"{output_prefix}_std_primers.fasta"), Path(
+        f"{output_prefix}_std_primer_out.txt"
+    )

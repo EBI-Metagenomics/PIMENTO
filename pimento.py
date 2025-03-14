@@ -2,6 +2,9 @@ from pathlib import Path
 
 import click
 import pandas as pd
+import pyfastx
+from rich.console import Console
+from rich import print
 
 from bin.standard_primer_matching import (
     get_primer_props,
@@ -15,9 +18,14 @@ from bin.choose_primer_cutoff import choose_cutoff_for_single_strand
 
 from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
+console = Console()
+
 
 @click.group()
 def cli():
+    console.log(
+        "[bold grey74]Starting new [bold green]PI[/bold green][bold red]MENTO[/bold red] run![bold grey74]\n"
+    )
     pass
 
 
@@ -59,13 +67,67 @@ def standard_primer_strategy(
     output_prefix: str,
 ) -> None:
 
-    std_primer_dict_regex, std_primer_dict = parse_std_primers(
-        primers_dir
-    )  # Parse std primer library into dictionaries
-    results = get_primer_props(
-        std_primer_dict_regex, input_fastq, minimum_primer_threshold
-    )  # Find all the std primers in the input and select most common
-    write_std_output(results, output_prefix, std_primer_dict)
+    print(
+        "[bold grey74]Running [bold green]standard primer strategy[/bold green].[/bold grey74]"
+    )
+    print(
+        f"[bold grey74]Input FASTQ file: [bold green]{input_fastq}[/bold green][/bold grey74]"
+    )
+    print(
+        f"[bold grey74]Standard primer library: [bold green]{primers_dir}[/bold green][/bold grey74]"
+    )
+    print(
+        f"[bold grey74]Output prefix: [bold green]{output_prefix}[/bold green][/bold grey74]"
+    )
+    print("")
+
+    with console.status("[bold yellow]Loading standard primer library..."):
+        std_primer_dict_regex, std_primer_dict, primer_count = parse_std_primers(
+            primers_dir
+        )  # Parse std primer library into dictionaries
+        console.log(
+            "[bold green]Loading standard primer library :white_check_mark:[/bold green]\n"
+        )
+
+    print(
+        f"[bold grey74][bold green]{primer_count} primers[/bold green] loaded[/bold grey74]"
+    )
+
+    with console.status("[bold yellow]Searching for standard primers..."):
+        results = get_primer_props(
+            std_primer_dict_regex, input_fastq, minimum_primer_threshold
+        )  # Find all the std primers in the input and select most common
+        console.log(
+            "[bold green]Searching for standard primers :white_check_mark:[/bold green]\n"
+        )
+
+    std_primers_fasta, std_primers_info = write_std_output(
+        results, output_prefix, std_primer_dict
+    )
+
+    if results:
+        primer_fasta = pyfastx.Fasta(str(std_primers_fasta), build_index=False)
+        print("[bold grey74]Found standard library primers:[/bold grey74]")
+        for primer in primer_fasta:
+            print(f"[bold green]>{primer[0]}[/bold green]")
+            print(f"[bold red]{primer[1]}[/bold red]")
+        print("")
+        print(
+            f"[bold grey74]Final primers found saved to [bold green]{std_primers_fasta}[/bold green][/bold grey74]"
+        )
+        print(
+            f"[bold grey74]Proportion information saved to [bold green]{std_primers_info}[/bold green][/bold grey74]"
+        )
+        print(
+            "[bold grey74]All proportions saved to [bold green]all_standard_primer_proportions.txt[/bold green]"
+            "[/bold grey74]"
+        )
+    else:
+        print("No standard library primers found in reads!")
+        print(
+            "[bold grey74]Log of proportions for all primers found in "
+            "[bold green]all_standard_primer_proportions.txt[/bold green][/bold grey74]"
+        )
 
 
 @cli.command(
@@ -293,23 +355,59 @@ def primer_cutoff_strategy(
     output_prefix: str,
 ) -> None:
 
-    bcv_df = ctx.invoke(
-        generate_base_conservation_vector,
-        input_fastq=input_fastq,
-        strand=strand,
-        output_prefix=output_prefix,
+    print(
+        "[bold grey74]Running [bold green]primer cutoff strategy[/bold green].[/bold grey74]"
     )
-    cutoffs_path = ctx.invoke(
-        find_potential_cutoffs, input_bcv=bcv_df, output_prefix=output_prefix
+    print(
+        f"[bold grey74]Input FASTQ file: [bold green]{input_fastq}[/bold green][/bold grey74]"
     )
-    inferred_primer_seq_path = ctx.invoke(
-        choose_primer_cutoff,
-        input_fastq=input_fastq,
-        primer_cutoffs=cutoffs_path,
-        output_prefix=output_prefix,
+    print(
+        f"[bold grey74]Strands to perform strategy on: [bold green]{strand}[/bold green][/bold grey74]"
     )
+    print(
+        f"[bold grey74]Output prefix: [bold green]{output_prefix}[/bold green][/bold grey74]"
+    )
+    print("")
 
-    print(inferred_primer_seq_path)
+    with console.status("[bold yellow]Generating base-conservation vector..."):
+        bcv_df = ctx.invoke(
+            generate_base_conservation_vector,
+            input_fastq=input_fastq,
+            strand=strand,
+            output_prefix=output_prefix,
+        )
+        console.log(
+            "[bold green]Generating base-conservation vector :white_check_mark:[/bold green]"
+        )
+    with console.status("[bold yellow]Finding potential cutoffs..."):
+        cutoffs_path = ctx.invoke(
+            find_potential_cutoffs, input_bcv=bcv_df, output_prefix=output_prefix
+        )
+        console.log(
+            "[bold green]Finding potential cutoffs :white_check_mark:[/bold green]"
+        )
+
+    with console.status("[bold yellow]Choosing optimal primer cutoff point..."):
+        inferred_primer_seq_path = ctx.invoke(
+            choose_primer_cutoff,
+            input_fastq=input_fastq,
+            primer_cutoffs=cutoffs_path,
+            output_prefix=output_prefix,
+        )
+        console.log(
+            "[bold green]Choosing optimal primer cutoff point :white_check_mark:[/bold green]\n"
+        )
+
+    print("[bold grey74]Primer cutoff strategy finished![/bold grey74]")
+    primer_fasta = pyfastx.Fasta(str(inferred_primer_seq_path), build_index=False)
+    print("[bold grey74]Inferred primers:[/bold grey74]")
+    for primer in primer_fasta:
+        print(f"[bold green]>{primer[0]}[/bold green]")
+        print(f"[bold red]{primer[1]}[/bold red]")
+    print("")
+    print(
+        f"[bold grey74]Final primers found saved to [bold green]{inferred_primer_seq_path}[/bold green][/bold grey74]"
+    )
 
 
 if __name__ == "__main__":

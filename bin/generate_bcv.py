@@ -46,8 +46,6 @@ def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict
     res_dict = defaultdict(float)
     start_range = range(2, 25, 1)  # Range of starting indices
 
-    print(f"Processing {path}")
-
     for start in start_range:
 
         read_count = get_read_count(

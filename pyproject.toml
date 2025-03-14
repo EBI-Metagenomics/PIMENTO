@@ -21,7 +21,8 @@ dependencies = [
     "pandas==2.0.2",
     "regex==2023.12.25",
     "click==8.1.7",
-    "pyfastx>=2.2.0"
+    "pyfastx>=2.2.0",
+    "rich==13.9.4"
 ]
 
 [build-system]
@@ -50,6 +51,7 @@ tests = [
     "regex==2023.12.25",
     "click==8.1.7",
     "pyfastx>=2.2.0",
+    "rich==13.9.4"
 
 ]
 
