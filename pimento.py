@@ -20,7 +20,7 @@ from bin.choose_primer_cutoff import choose_cutoff_for_single_strand
 from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
 console = Console()
-__version__ = importlib.metadata.version("pimento")
+__version__ = importlib.metadata.version("mi-pimento")
 
 
 @click.group()
