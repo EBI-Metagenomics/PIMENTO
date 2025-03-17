@@ -1,4 +1,5 @@
 from pathlib import Path
+import importlib.metadata
 
 import click
 import pandas as pd
@@ -19,9 +20,11 @@ from bin.choose_primer_cutoff import choose_cutoff_for_single_strand
 from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
 console = Console()
+__version__ = importlib.metadata.version("pimento")
 
 
 @click.group()
+@click.version_option(__version__)
 def cli():
     console.log(
         "[bold grey74]Starting new [bold green]PI[/bold green][bold red]MENTO[/bold red] run![bold grey74]\n"
