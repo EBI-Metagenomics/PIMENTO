@@ -415,7 +415,7 @@ def choose_primer_cutoff(
 
 @cli.command(
     "auto",
-    options_metavar="-i <fastq/fastq.gz> -o <output_prefix>",
+    options_metavar="-i <fastq/fastq.gz> -st [FR/F/R] -o <output_prefix>",
     short_help="Perform the primer cutoff strategy for primer inference",
 )
 @click.option(
