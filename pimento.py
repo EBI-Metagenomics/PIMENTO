@@ -165,7 +165,16 @@ def standard_primer_strategy(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 def are_there_primers(input_fastq: Path, output_prefix: str) -> None:
+    """Checks for the presence of primers in input reads.
+    Using patterns of base-conservation values for input reads, this function makes a prediction
+    for whether there are primers at either ends of reads. The flag for whether primers are detected
+    (1 for yes, 0 for no) for both strands is saved to an output file.
 
+    :param input_fastq: The input FASTQ file.
+    :type input_fastq: Path
+    :param output_prefix: The prefix to be used on output files.
+    :type output_prefix: str
+    """
     fwd_primer_flag = atp_in_this_sample(
         input_fastq
     )  # Check for general primers in fwd
@@ -217,6 +226,20 @@ def are_there_primers(input_fastq: Path, output_prefix: str) -> None:
 def generate_base_conservation_vector(
     input_fastq: Path, strand: str, output_prefix: str
 ) -> Path:
+    """Generates base-conservation vector(s) for input fastq files.
+    To be used by the primer cutoff inference strategy, this function computes the base-conservation
+    vector for input reads. Users can choose to perform this computation for either forward or reverse
+    strands of the reads, or both.
+
+    :param input_fastq: The input FASTQ file.
+    :type input_fastq: Path
+    :param strand: The strand(s) to perform primer inference for. Values can be either F, R, or FR for both.
+    :type strand: str
+    :param output_prefix: The prefix to be used on output files.
+    :type output_prefix: str
+    :return: TSV file containing the base-conservation vector.
+    :rtype: Path
+    """
 
     with console.status("[bold yellow]Generating base-conservation vector..."):
 
@@ -263,7 +286,19 @@ def generate_base_conservation_vector(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 def find_potential_cutoffs(input_bcv: Path, output_prefix: str) -> Path:
+    """Find the potential cutoffs in a base-conservation vector output file.
+    By computing negative inflection points in the base-conservation vectors,
+    this function identifies potential cutoff points to be considered as primer cutoff
+    points in the next and final step of the primer cutoff inference strategy. These potential
+    cutoffs are saved to a TSV file.
 
+    :param input_bcv: TSV file containing the base-conservation vector.
+    :type input_bcv: Path
+    :param output_prefix: The prefix to be used on output files.
+    :type output_prefix: str
+    :return: TSV file containing the potential cutoff points to consider.
+    :rtype: Path
+    """
     with console.status("[bold yellow]Finding potential cutoffs..."):
 
         bcv_df = pd.read_csv(input_bcv, sep="\t", index_col=0)  # Read mcp_df
@@ -313,7 +348,22 @@ def find_potential_cutoffs(input_bcv: Path, output_prefix: str) -> Path:
 def choose_primer_cutoff(
     input_fastq: Path, primer_cutoffs: Path, output_prefix: str
 ) -> Path:
+    """Choose the optimal primer cutoff point from an input set.
+    Using patterns of base-conservation in reads and a set of potential cutoff points
+    to choose from, this function makes a prediction for the "optimal" cutoff point
+    to be used for primer inference. This function then generates a consensus sequence
+    using the reads and the chosen cutoff point to be used as the final primer sequence.
+    Performed for both strands, the final primer sequences are output into a FASTA file.
 
+    :param input_fastq: The input FASTQ file.
+    :type input_fastq: Path
+    :param primer_cutoffs: TSV file containing the potential cutoff points to consider.
+    :type primer_cutoffs: Path
+    :param output_prefix: The prefix to be used on output files.
+    :type output_prefix: str
+    :return: The output FASTA file containing the inferred primer sequences.
+    :rtype: Path
+    """
     with console.status("[bold yellow]Choosing optimal primer cutoff point..."):
 
         cutoffs_df = pd.read_csv(primer_cutoffs, sep="\t")
@@ -375,7 +425,7 @@ def choose_primer_cutoff(
 @click.option(
     "-st",
     "--strand",
-    help="The strand(s) to generate a BCV for. Values can be either F, R, or FR for both.",
+    help="The strand(s) to perform primer inference for. Values can be either F, R, or FR for both.",
     type=click.Choice(["FR", "F", "R"]),
     required=True,
 )
@@ -384,11 +434,26 @@ def choose_primer_cutoff(
 )
 @click.pass_context
 def primer_cutoff_strategy(
-    ctx,
+    ctx: click.Context,
     input_fastq: Path,
     strand: str,
     output_prefix: str,
 ) -> None:
+    """Runs the primer cutoff strategy for primer inference.
+    Using patterns of base-conservation values for input reads, this strategy identifies potential cutoff
+    points where a primer sequence could end. An optimal choice of cutoff based on the change in base-conservation
+    before and after a cutoff is then made. Finally a consensus sequence is generated using this cutoff point
+    and the input reads, which are saved to an output FASTA file.
+
+    :param ctx: Click context - needed to invoke the multiple Click functions this "pipeline" uses.
+    :type ctx: click.Context
+    :param input_fastq: The input FASTQ file.
+    :type input_fastq: Path
+    :param strand: The strand(s) to perform primer inference for. Values can be either F, R, or FR for both.
+    :type strand: str
+    :param output_prefix: The prefix to be used on output files.
+    :type output_prefix: str
+    """
 
     print(
         "[bold grey74]Running [bold green]primer cutoff strategy[/bold green].[/bold grey74]"
