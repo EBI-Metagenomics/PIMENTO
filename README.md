@@ -1,5 +1,6 @@
 # PIMENTO
-![PIMENTO-LOGO](PIMENTO.png)
+<img src="PIMENTO.png" width="500">
+
 A **P**r**IME**r infere**N**ce **TO**olkit to facilitate large-scale calling of metabarcoding amplicon sequence variants.
 
 ## How PIMENTO works
