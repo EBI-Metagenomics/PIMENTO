@@ -21,11 +21,11 @@ import numpy as np
 from bin.thresholds import MAX_CUTOFF_WINDOW_START, MIN_CUTOFF_WINDOW_START
 
 
-def find_bcv_inflection_points(mcp_df):
+def find_bcv_inflection_points(bcv_df):
     """
-    Find inflection points from an mcp_df file output by "assess_mcp_proportions_MERGED.py"
+    Find inflection points from an bcv_df file output by "generate_bcv.py"
 
-    Takes the list of average mcp conservations and gets the derivative of the curve
+    Takes the list of average base conservations and gets the derivative of the curve
     Keep any points of the derivative where value is above the 80th percentile
 
     Outputs a dictionary with key-val pairs where vals are lists:
@@ -35,11 +35,11 @@ def find_bcv_inflection_points(mcp_df):
     """
 
     inf_point_dict = defaultdict(list)
-    start_indices = [int(i) for i in mcp_df.columns.tolist()]
+    start_indices = [int(i) for i in bcv_df.columns.tolist()]
 
-    for i in range(len(mcp_df)):  # Loop through both possible strands of the mcp_df
-        strand = mcp_df.index[i]
-        props = mcp_df.iloc[i].tolist()
+    for i in range(len(bcv_df)):  # Loop through both possible strands of the bcv_df
+        strand = bcv_df.index[i]
+        props = bcv_df.iloc[i].tolist()
         props = [-val for val in props]
 
         prop_diff = np.diff(props) / np.diff(start_indices)  # Get the derivative
