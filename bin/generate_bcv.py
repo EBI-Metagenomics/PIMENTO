@@ -31,16 +31,16 @@ from bin.thresholds import MAX_READ_COUNT, BCV_WINDOW_SIZE
 
 def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict[float]:
     """
-    Generate mcp proportions in a stepwise and windowed manner for a fastq file.
+    Generate base-conservation vectors in a stepwise and windowed manner for a fastq file.
 
-    For a continuous range of starting indices (2 to 25), generate mcps of window size of 5 bases.
+    For a continuous range of starting indices (2 to 25), generate substrings of window size of 5 bases.
     Calculate the average conservation of the most common base at each index of a window.
-    The resulting list of mcp conservations can be considered a conservation curve and used to
+    The resulting list of base-conservations can be considered a conservation vector and used to
     identify inflection points where the conservation suddenly changes.
 
     Output a dictionary where:
         key -> an index starting point e.g. base 10
-        val -> the average conservation of the most common base for the mcp window goign from base 10 to 15 (inclusive)
+        val -> the avg conservation of the most common base for the substring window from base 10 to 15 (inclusive)
     """
 
     res_dict = defaultdict(float)
@@ -58,10 +58,10 @@ def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict
 
         read_substring_count_dict = fetch_read_substrings(
             path, BCV_WINDOW_SIZE, rev, start, max_line_count
-        )  # get MCP count dict
+        )  # get substring count dict
         base_counts = build_list_of_base_counts(
             read_substring_count_dict, BCV_WINDOW_SIZE
-        )  # list of base conservation dicts for mcps
+        )  # list of base conservation dicts for substring
         base_conservation, cons_seq = compute_windowed_base_conservation(
             base_counts, read_count, max_line_count=max_line_count
         )  # get list of max base conservations for each index
@@ -75,7 +75,7 @@ def write_bcv_output(
     fwd_out: defaultdict[float] = {}, rev_out: defaultdict[float] = {}
 ):
     """
-    Generate Pandas dataframe out of mcp dictionary.
+    Generate Pandas dataframe out of bcv dictionary.
 
     Output looks like this (when both F and R are requested):
         2	3	4

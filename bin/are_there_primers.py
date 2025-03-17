@@ -49,10 +49,10 @@ def atp_in_this_sample(input_fastq: Path, rev: bool = False) -> bool:
 
     read_substring_count_dict = fetch_read_substrings(
         input_fastq, ATP_PREFIX_LENGTH, rev=rev
-    )  # mcp dict where key is the mcp and value is the count
+    )  # substring dict where key is the substring and value is the count
     base_counts = build_list_of_base_counts(
         read_substring_count_dict, ATP_PREFIX_LENGTH
-    )  # list of base conservation dicts for mcps
+    )  # list of base conservation dicts for substrings
     base_conservation, cons_seq = compute_windowed_base_conservation(
         base_counts, read_count
     )  # get list of max base conservations for each index

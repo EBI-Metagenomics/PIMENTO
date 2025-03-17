@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# used by bin.amplicon_utils.fetch_mcp
+# used by bin.amplicon_utils.fetch_read_substrings
 MAX_READ_COUNT = 300_000
 # used by bin.amplicon_utils.build_cons_seq
 CONSENSUS_BASE_THRESHOLD = 0.80
