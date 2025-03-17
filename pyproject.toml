@@ -33,7 +33,7 @@ build-backend = "setuptools.build_meta"
 packages = ["bin"]
 
 [project.scripts]
-pimento = "mi-pimento:cli"
+pimento = "pimento:cli"
 
 [project.optional-dependencies]
 tests = [
