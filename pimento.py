@@ -66,7 +66,26 @@ def standard_primer_strategy(
     minimum_primer_threshold: float,
     output_prefix: str,
 ) -> None:
+    """Runs the standard primer matching strategy for primer inference.
+    A library of standard primers will be searched in input reads using fuzzy regex to identify
+    primers with high degrees of proportions. The best single, or pair, of primers found will be
+    outputted into a FASTA file (provided any were indeed found).
+    PIMENTO comes with its own standard primer library which will be used as a default. Users can
+    however give their own custom input library, or extend the default library to suit their needs.
 
+    :param input_fastq: The input FASTQ file.
+    :type input_fastq: Path
+    :param primers_dir: Directory containing FASTA files of primer sequences for the library.
+    The only format requirement is that forward strand primer names in the FASTA headers
+    finish with the character `F`, and vice versa `R` for reverse strand primers. See PIMENTO's
+    standard library for examples.
+    :type primers_dir: Path
+    :param minimum_primer_threshold: The minimum matching proportion threshold for a primer to be considered.
+    The current default value for this threshold is a proportion of 0.60 of reads. Users can customise this value.
+    :type minimum_primer_threshold: float
+    :param output_prefix: The prefix to be used on output files.
+    :type output_prefix: str
+    """
     print(
         "[bold grey74]Running [bold green]standard primer strategy[/bold green].[/bold grey74]"
     )
