@@ -1,5 +1,5 @@
 [project]
-name = "pimento"
+name = "mi-pimento"
 version = "0.0.1"
 readme = "README.md"
 license = {text = "Apache Software License 2.0"}
@@ -33,12 +33,7 @@ build-backend = "setuptools.build_meta"
 packages = ["bin"]
 
 [project.scripts]
-are_there_primers = "bin.are_there_primers:main"
-assess_inflection_point_mcp = "bin.assess_inflection_point_mcp:main"
-assess_mcp_proportions = "bin.assess_mcp_proportions:main"
-find_mcp_inflection_points = "bin.find_mcp_inflection_points:main"
-standard_primer_matching = "bin.standard_primer_matching:main"
-get_pimento_version = "bin.get_pimento_version:main"
+pimento = "pimento:cli"
 
 [project.optional-dependencies]
 tests = [
