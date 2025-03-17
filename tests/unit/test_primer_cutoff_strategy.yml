@@ -2,21 +2,21 @@
   tags:
     - primer_cutoff_strategy
   exit_code: 2
-  command: python -m pimento choose_primer_cutoff --chromosome X
+  command: python -m cli.pimento choose_primer_cutoff --chromosome X
   stderr:
     contains:
       - "Error: No such option: --chromosome"
 - name: primer_cutoff_strategy test_correct_args
   tags:
     - primer_cutoff_strategy
-  command: python -m pimento auto -i tests/fixtures/test.fastq.gz -st FR -o sample
+  command: python -m cli.pimento auto -i tests/fixtures/test.fastq.gz -st FR -o sample
   files:
     - path: "sample_auto_primers.fasta"
       md5sum: c36ff305d6aec14df3b7a61cb702101e
 - name: primer_cutoff_strategy test_large_file
   tags:
     - primer_cutoff_strategy
-  command: python -m pimento auto -i tests/fixtures/test_big.fastq.gz -st FR -o sample
+  command: python -m cli.pimento auto -i tests/fixtures/test_big.fastq.gz -st FR -o sample
   files:
     - path: "sample_auto_primers.fasta"
       md5sum: b6abc080cbb4390dce82b23fc176f3c2
