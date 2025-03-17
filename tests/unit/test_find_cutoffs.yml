@@ -2,21 +2,21 @@
   tags:
     - find_cutoffs
   exit_code: 2
-  command: python pimento.py find_cutoffs --chromosome X
+  command: python -m pimento find_cutoffs --chromosome X
   stderr:
     contains:
       - "Error: No such option: --chromosome"
 - name: find_cutoffs test_correct_args
   tags:
     - find_cutoffs
-  command: python pimento.py find_cutoffs -i tests/fixtures/test_bcv.tsv -o sample
+  command: python -m pimento find_cutoffs -i tests/fixtures/test_bcv.tsv -o sample
   files:
     - path: "sample_cutoffs.tsv"
       md5sum: b4da973b056b9b5ed4ec7ca8d7998be4
 - name: find_cutoffs test_large_file
   tags:
     - find_cutoffs
-  command: python pimento.py find_cutoffs -i tests/fixtures/test_big_bcv.tsv -o sample
+  command: python -m pimento find_cutoffs -i tests/fixtures/test_big_bcv.tsv -o sample
   files:
     - path: "sample_cutoffs.tsv"
       md5sum: 80767a078f817aab1b9c67736d14093b
