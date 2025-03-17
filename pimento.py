@@ -199,25 +199,31 @@ def generate_base_conservation_vector(
     input_fastq: Path, strand: str, output_prefix: str
 ) -> Path:
 
-    res_df = ""
+    with console.status("[bold yellow]Generating base-conservation vector..."):
 
-    # TODO: match-case statement is python 3.10>. We are currently locking the version
-    # at version 3.9. The day we bump the version we should replace these if statements
-    # with a match-case block.
+        res_df = ""
 
-    if strand == "FR":
-        fwd_bcv = generate_bcv_for_single_strand(input_fastq)
-        rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
-        res_df = write_bcv_output(fwd_bcv, rev_bcv)
-    elif strand == "F":
-        fwd_bcv = generate_bcv_for_single_strand(input_fastq)
-        res_df = write_bcv_output(fwd_bcv)
-    elif strand == "R":
-        rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
-        res_df = write_bcv_output(rev_out=rev_bcv)
+        # TODO: match-case statement is python 3.10>. We are currently locking the version
+        # at version 3.9. The day we bump the version we should replace these if statements
+        # with a match-case block.
 
-    # Save resulting dataframe to a tsv file
-    res_df.to_csv(f"{output_prefix}_bcv.tsv", sep="\t")
+        if strand == "FR":
+            fwd_bcv = generate_bcv_for_single_strand(input_fastq)
+            rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
+            res_df = write_bcv_output(fwd_bcv, rev_bcv)
+        elif strand == "F":
+            fwd_bcv = generate_bcv_for_single_strand(input_fastq)
+            res_df = write_bcv_output(fwd_bcv)
+        elif strand == "R":
+            rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
+            res_df = write_bcv_output(rev_out=rev_bcv)
+
+        # Save resulting dataframe to a tsv file
+        res_df.to_csv(f"{output_prefix}_bcv.tsv", sep="\t")
+
+    console.log(
+        "[bold green]Generating base-conservation vector :white_check_mark:[/bold green]"
+    )
 
     return f"{output_prefix}_bcv.tsv"
 
@@ -239,22 +245,26 @@ def generate_base_conservation_vector(
 )
 def find_potential_cutoffs(input_bcv: Path, output_prefix: str) -> Path:
 
-    bcv_df = pd.read_csv(input_bcv, sep="\t", index_col=0)  # Read mcp_df
-    inf_point_dict = find_bcv_inflection_points(
-        bcv_df
-    )  # Generate inflection points dict
+    with console.status("[bold yellow]Finding potential cutoffs..."):
 
-    if len(inf_point_dict) > 0:  # If the inf_point_dict isn't empty..
-        inf_point_df = pd.DataFrame.from_dict(
-            inf_point_dict
-        )  # .. turn it into a dataframe
-        inf_point_df.to_csv(
-            f"{output_prefix}_cutoffs.tsv", sep="\t", index=False
-        )  # ..save it to a .tsv file
+        bcv_df = pd.read_csv(input_bcv, sep="\t", index_col=0)  # Read mcp_df
+        inf_point_dict = find_bcv_inflection_points(
+            bcv_df
+        )  # Generate inflection points dict
 
-    else:  # If it is empty..
-        fw = open(f"{output_prefix}_cutoffs.tsv", "w")  # ..make an empty file
-        fw.close()
+        if len(inf_point_dict) > 0:  # If the inf_point_dict isn't empty..
+            inf_point_df = pd.DataFrame.from_dict(
+                inf_point_dict
+            )  # .. turn it into a dataframe
+            inf_point_df.to_csv(
+                f"{output_prefix}_cutoffs.tsv", sep="\t", index=False
+            )  # ..save it to a .tsv file
+
+        else:  # If it is empty..
+            fw = open(f"{output_prefix}_cutoffs.tsv", "w")  # ..make an empty file
+            fw.close()
+
+    console.log("[bold green]Finding potential cutoffs :white_check_mark:[/bold green]")
 
     return Path(f"{output_prefix}_cutoffs.tsv")
 
@@ -285,42 +295,48 @@ def choose_primer_cutoff(
     input_fastq: Path, primer_cutoffs: Path, output_prefix: str
 ) -> Path:
 
-    cutoffs_df = pd.read_csv(primer_cutoffs, sep="\t")
+    with console.status("[bold yellow]Choosing optimal primer cutoff point..."):
 
-    f_slice = cutoffs_df[cutoffs_df.strand == "F"]  # get forward inflection points
-    r_slice = cutoffs_df[cutoffs_df.strand == "R"]  # get reverse inflection points
-    r_slice = r_slice.reset_index(drop=True)
+        cutoffs_df = pd.read_csv(primer_cutoffs, sep="\t")
 
-    f_cutoff = ""
-    r_cutoff = ""
-    f_primer = ""
-    r_primer = ""
+        f_slice = cutoffs_df[cutoffs_df.strand == "F"]  # get forward inflection points
+        r_slice = cutoffs_df[cutoffs_df.strand == "R"]  # get reverse inflection points
+        r_slice = r_slice.reset_index(drop=True)
 
-    if not f_slice.empty:  # if there is a forward inflection point..
-        cutoff_list = f_slice.inf_point.tolist()
-        f_cutoff, f_primer = choose_cutoff_for_single_strand(
-            input_fastq, cutoff_list
-        )  # .. assess and select
+        f_cutoff = ""
+        r_cutoff = ""
+        f_primer = ""
+        r_primer = ""
 
-    if not r_slice.empty:  # if there is a reverse inflection point..
-        cutoff_list = r_slice.inf_point.tolist()
-        r_cutoff, r_primer = choose_cutoff_for_single_strand(
-            input_fastq, cutoff_list, rev=True
-        )  # .. assess and select
+        if not f_slice.empty:  # if there is a forward inflection point..
+            cutoff_list = f_slice.inf_point.tolist()
+            f_cutoff, f_primer = choose_cutoff_for_single_strand(
+                input_fastq, cutoff_list
+            )  # .. assess and select
 
-    # Output cutoff point(s) to .txt file
-    with open(f"{output_prefix}_chosen_cutoffs.txt", "w") as fw:
-        if f_cutoff != "":
-            fw.write(f"F: {f_cutoff}\n")
-        if r_cutoff != "":
-            fw.write(f"R: {r_cutoff}\n")
+        if not r_slice.empty:  # if there is a reverse inflection point..
+            cutoff_list = r_slice.inf_point.tolist()
+            r_cutoff, r_primer = choose_cutoff_for_single_strand(
+                input_fastq, cutoff_list, rev=True
+            )  # .. assess and select
 
-    # Output consensus primer sequence(s) to .fasta file
-    with open(f"{output_prefix}_auto_primers.fasta", "w") as fw:
-        if f_cutoff != "":
-            fw.write(f">F_auto\n{f_primer}\n")
-        if r_cutoff != "":
-            fw.write(f">R_auto\n{r_primer}\n")
+        # Output cutoff point(s) to .txt file
+        with open(f"{output_prefix}_chosen_cutoffs.txt", "w") as fw:
+            if f_cutoff != "":
+                fw.write(f"F: {f_cutoff}\n")
+            if r_cutoff != "":
+                fw.write(f"R: {r_cutoff}\n")
+
+        # Output consensus primer sequence(s) to .fasta file
+        with open(f"{output_prefix}_auto_primers.fasta", "w") as fw:
+            if f_cutoff != "":
+                fw.write(f">F_auto\n{f_primer}\n")
+            if r_cutoff != "":
+                fw.write(f">R_auto\n{r_primer}\n")
+
+    console.log(
+        "[bold green]Choosing optimal primer cutoff point :white_check_mark:[/bold green]\n"
+    )
 
     return Path(f"{output_prefix}_auto_primers.fasta")
 
@@ -369,34 +385,23 @@ def primer_cutoff_strategy(
     )
     print("")
 
-    with console.status("[bold yellow]Generating base-conservation vector..."):
-        bcv_df = ctx.invoke(
-            generate_base_conservation_vector,
-            input_fastq=input_fastq,
-            strand=strand,
-            output_prefix=output_prefix,
-        )
-        console.log(
-            "[bold green]Generating base-conservation vector :white_check_mark:[/bold green]"
-        )
-    with console.status("[bold yellow]Finding potential cutoffs..."):
-        cutoffs_path = ctx.invoke(
-            find_potential_cutoffs, input_bcv=bcv_df, output_prefix=output_prefix
-        )
-        console.log(
-            "[bold green]Finding potential cutoffs :white_check_mark:[/bold green]"
-        )
+    bcv_df = ctx.invoke(
+        generate_base_conservation_vector,
+        input_fastq=input_fastq,
+        strand=strand,
+        output_prefix=output_prefix,
+    )
 
-    with console.status("[bold yellow]Choosing optimal primer cutoff point..."):
-        inferred_primer_seq_path = ctx.invoke(
-            choose_primer_cutoff,
-            input_fastq=input_fastq,
-            primer_cutoffs=cutoffs_path,
-            output_prefix=output_prefix,
-        )
-        console.log(
-            "[bold green]Choosing optimal primer cutoff point :white_check_mark:[/bold green]\n"
-        )
+    cutoffs_path = ctx.invoke(
+        find_potential_cutoffs, input_bcv=bcv_df, output_prefix=output_prefix
+    )
+
+    inferred_primer_seq_path = ctx.invoke(
+        choose_primer_cutoff,
+        input_fastq=input_fastq,
+        primer_cutoffs=cutoffs_path,
+        output_prefix=output_prefix,
+    )
 
     print("[bold grey74]Primer cutoff strategy finished![/bold grey74]")
     primer_fasta = pyfastx.Fasta(str(inferred_primer_seq_path), build_index=False)
