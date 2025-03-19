@@ -1,7 +1,6 @@
 from pathlib import Path
 import importlib.metadata
 from importlib.resources import files
-import os
 
 import click
 import pandas as pd
@@ -23,10 +22,7 @@ from pimento.bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
 console = Console()
 __version__ = importlib.metadata.version("mi-pimento")
-
-print(os.path.dirname(__file__))
-
-print(files("pimento.standard_primers"))
+DEFAULT_STD_PRIMERS_PATH = files("pimento.standard_primers").joinpath("")
 
 
 @click.group()
@@ -56,7 +52,7 @@ def cli():
     required=True,
     help="Input directory containing the standard primer library. Default uses the PIMENTO standard primer library.",
     type=click.Path(exists=True, path_type=Path, file_okay=False),
-    default=Path(files("pimento.standard_primers")),
+    default=Path(DEFAULT_STD_PRIMERS_PATH),
 )
 @click.option(
     "-m",

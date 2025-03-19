@@ -2,21 +2,21 @@
   tags:
     - are_there_primers
   exit_code: 2
-  command: python -m pimento.cli.pimento std --chromosome X
+  command: pimento std --chromosome X
   stderr:
     contains:
       - "Error: No such option: --chromosome"
 - name: are_there_primers test_correct_args
   tags:
     - are_there_primers
-  command: python -m pimento.cli.pimento are_there_primers -i tests/fixtures/test.fastq.gz -o sample
+  command: pimento are_there_primers -i tests/fixtures/test.fastq.gz -o sample
   files:
     - path: "sample_general_primer_out.txt"
       md5sum: f2160c8ffedf48068f2e1137e0a3a7e7
 - name: are_there_primers test_big_file
   tags:
     - are_there_primers
-  command: python -m pimento.cli.pimento are_there_primers -i tests/fixtures/test_big.fastq.gz -o sample
+  command: pimento are_there_primers -i tests/fixtures/test_big.fastq.gz -o sample
   files:
     - path: "sample_general_primer_out.txt"
       md5sum: f2160c8ffedf48068f2e1137e0a3a7e7
