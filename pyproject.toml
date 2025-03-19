@@ -1,6 +1,6 @@
 [project]
 name = "mi-pimento"
-version = "0.0.3"
+version = "0.0.4"
 readme = "README.md"
 license = {text = "Apache Software License 2.0"}
 authors = [
@@ -8,7 +8,7 @@ authors = [
 ]
 keywords = ["bioinformatics", "pipelines", "metagenomics", "primers", "reads", "sequencing"]
 description = "A PrIMEr infereNce TOolkit to facilitate large-scale calling of metabarcoding amplicon sequence variants"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
@@ -30,11 +30,14 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["cli",
-            "bin"]
+packages = ["pimento",
+            "pimento.bin",
+            "pimento.standard_primers"]
+[tool.setuptools.package-data]
+"pimento.standard_primers" = ["*"]
 
 [project.scripts]
-pimento = "cli.pimento:cli"
+pimento = "pimento.pimento:cli"
 
 [project.optional-dependencies]
 tests = [

@@ -19,11 +19,11 @@ from pathlib import Path
 import logging
 import pyfastx
 
-from bin.regex_ambiguous_bases import (
+from pimento.bin.regex_ambiguous_bases import (
     AMBIGUOUS_BASES_DICT,
     AMBIGUOUS_BASES_DICT_REV,
 )
-from bin.thresholds import CONSENSUS_BASE_THRESHOLD
+from pimento.bin.thresholds import CONSENSUS_BASE_THRESHOLD
 
 logging.basicConfig(level=logging.DEBUG)
 

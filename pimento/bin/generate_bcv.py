@@ -20,13 +20,13 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from bin.pimento_utils import (
+from pimento.bin.pimento_utils import (
     get_read_count,
     compute_windowed_base_conservation,
     build_list_of_base_counts,
     fetch_read_substrings,
 )
-from bin.thresholds import MAX_READ_COUNT, BCV_WINDOW_SIZE
+from pimento.bin.thresholds import MAX_READ_COUNT, BCV_WINDOW_SIZE
 
 
 def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict[float]:

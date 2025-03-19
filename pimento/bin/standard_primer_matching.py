@@ -21,13 +21,13 @@ import pyfastx
 from Bio.Seq import Seq
 import regex
 
-from bin.pimento_utils import (
+from pimento.bin.pimento_utils import (
     primer_regex_query_builder,
     get_read_count,
     fetch_read_substrings,
 )
 
-from bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH
+from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH
 
 
 def parse_std_primers(

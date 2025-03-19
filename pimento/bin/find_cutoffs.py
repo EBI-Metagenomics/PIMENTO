@@ -18,7 +18,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from bin.thresholds import MAX_CUTOFF_WINDOW_START, MIN_CUTOFF_WINDOW_START
+from pimento.bin.thresholds import MAX_CUTOFF_WINDOW_START, MIN_CUTOFF_WINDOW_START
 
 
 def find_bcv_inflection_points(bcv_df):
