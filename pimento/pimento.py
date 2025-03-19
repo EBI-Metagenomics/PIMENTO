@@ -1,5 +1,7 @@
 from pathlib import Path
 import importlib.metadata
+from importlib.resources import files
+import os
 
 import click
 import pandas as pd
@@ -7,20 +9,24 @@ import pyfastx
 from rich.console import Console
 from rich import print
 
-from bin.standard_primer_matching import (
+from pimento.bin.standard_primer_matching import (
     get_primer_props,
     parse_std_primers,
     write_std_output,
 )
-from bin.are_there_primers import atp_in_this_sample, write_atp_output
-from bin.generate_bcv import generate_bcv_for_single_strand, write_bcv_output
-from bin.find_cutoffs import find_bcv_inflection_points
-from bin.choose_primer_cutoff import choose_cutoff_for_single_strand
+from pimento.bin.are_there_primers import atp_in_this_sample, write_atp_output
+from pimento.bin.generate_bcv import generate_bcv_for_single_strand, write_bcv_output
+from pimento.bin.find_cutoffs import find_bcv_inflection_points
+from pimento.bin.choose_primer_cutoff import choose_cutoff_for_single_strand
 
-from bin.thresholds import MIN_STD_PRIMER_THRESHOLD
+from pimento.bin.thresholds import MIN_STD_PRIMER_THRESHOLD
 
 console = Console()
 __version__ = importlib.metadata.version("mi-pimento")
+
+print(os.path.dirname(__file__))
+
+print(files("pimento.standard_primers"))
 
 
 @click.group()
@@ -50,7 +56,7 @@ def cli():
     required=True,
     help="Input directory containing the standard primer library. Default uses the PIMENTO standard primer library.",
     type=click.Path(exists=True, path_type=Path, file_okay=False),
-    default=Path("./standard_primers"),
+    default=Path(files("pimento.standard_primers")),
 )
 @click.option(
     "-m",

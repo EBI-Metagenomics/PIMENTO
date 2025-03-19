@@ -18,13 +18,13 @@ from Bio.Seq import Seq
 from pathlib import Path
 import numpy as np
 
-from bin.pimento_utils import (
+from pimento.bin.pimento_utils import (
     get_read_count,
     compute_windowed_base_conservation,
     build_list_of_base_counts,
     fetch_read_substrings,
 )
-from bin.thresholds import CONSENSUS_BASE_THRESHOLD, MAX_READ_COUNT
+from pimento.bin.thresholds import CONSENSUS_BASE_THRESHOLD, MAX_READ_COUNT
 
 
 def choose_cutoff_for_single_strand(

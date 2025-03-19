@@ -17,14 +17,14 @@
 from pathlib import Path
 import numpy as np
 
-from bin.pimento_utils import (
+from pimento.bin.pimento_utils import (
     get_read_count,
     compute_windowed_base_conservation,
     build_list_of_base_counts,
     fetch_read_substrings,
 )
 
-from bin.thresholds import ATP_WINDOW_SIZE, ATP_PREFIX_LENGTH
+from pimento.bin.thresholds import ATP_WINDOW_SIZE, ATP_PREFIX_LENGTH
 
 
 def atp_in_this_sample(input_fastq: Path, rev: bool = False) -> bool:
