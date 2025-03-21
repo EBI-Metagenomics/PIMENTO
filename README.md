@@ -17,6 +17,9 @@ PIMENTO is available on [PyPi](https://pypi.org/project/mi-pimento/). To install
 
 `pip install mi-pimento`
 
+PIMENTO is also available on bioconda and can be installed like this with conda/mamba:
+`conda install -c bioconda mi-pimento`
+
 ## How to run
 
 ![PrimerInferenceWorkflow](PrimerInferenceWorkflow.png)
