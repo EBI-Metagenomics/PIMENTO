@@ -56,16 +56,15 @@ def parse_std_primers(
     primer_count = 0
     for primer_file in primer_files:
         region = primer_file.stem
-        primer_fasta = pyfastx.Fasta(str(primer_file))
+        primer_fasta = pyfastx.Fasta(str(primer_file), build_index=False)
 
-        for primer in primer_fasta:
-            primer_seq = primer.seq
-            if primer.name[-1] == "R":
-                primer_seq = primer.complement
+        for primer_name, primer_seq in primer_fasta:
+            if primer_name[-1] == "R":
+                primer_seq = str(Seq(primer_seq).complement())
 
             primer_regex = primer_regex_query_builder(primer_seq)
-            std_primer_dict_regex[region][primer.name] = primer_regex
-            std_primer_dict[region][primer.name] = primer_seq
+            std_primer_dict_regex[region][primer_name] = primer_regex
+            std_primer_dict[region][primer_name] = primer_seq
             primer_count += 1
 
     return std_primer_dict_regex, std_primer_dict, primer_count
