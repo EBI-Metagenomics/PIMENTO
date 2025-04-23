@@ -27,7 +27,7 @@ from pimento.bin.pimento_utils import (
     fetch_read_substrings,
 )
 
-from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH
+from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH, MAX_READ_COUNT
 
 
 def parse_std_primers(
@@ -82,7 +82,7 @@ def run_primer_matching_once(input_path: Path, input_primer: str, rev: bool = Fa
     match_count = 0.0
 
     substring_count_dict = fetch_read_substrings(
-        input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev
+        input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev, max_line_count=MAX_READ_COUNT
     )
 
     for substring in substring_count_dict.keys():
