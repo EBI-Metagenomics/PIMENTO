@@ -1,6 +1,6 @@
 [project]
 name = "mi-pimento"
-version = "1.0.0"
+version = "1.0.1"
 readme = "README.md"
 license = {text = "Apache Software License 2.0"}
 authors = [
@@ -37,7 +37,7 @@ packages = ["pimento",
 "pimento.standard_primers" = ["*"]
 
 [project.scripts]
-pimento = "pimento.pimento:cli"
+pimento = "pimento.pimento_cli:cli"
 
 [project.optional-dependencies]
 tests = [

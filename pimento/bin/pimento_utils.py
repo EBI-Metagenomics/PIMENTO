@@ -81,6 +81,11 @@ def compute_windowed_base_conservation(
         max_count = 0
         cons_dict = defaultdict(float)
 
+        if len(count_dict) == 1 and "N" in count_dict:
+            max_prop = 0.0
+            cons_seq = "N"
+            continue
+
         if counter in do_not_include:
             continue
 
