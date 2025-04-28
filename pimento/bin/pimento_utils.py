@@ -151,7 +151,7 @@ def primer_regex_query_builder(primer):
         else:
             query += str(AMBIGUOUS_BASES_DICT[char])
 
-    query = f"(.*{query}){{e<=1}}"
+    query = f"(.*{query}){{e<=2}}"
 
     return query
 
