@@ -65,11 +65,21 @@ in to be considered in inference. Default value of 0.60.",
 @click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
+@click.option(
+    "--merged",
+    default=False,
+    is_flag=True,
+    help="Flag for running the standard primer strategy in `merged` mode, \
+which is necessary if the input sequence file is made up of merged paired-end \
+or single-end reads. Specifically, it will reverse the substrings that are searched\
+for reverse primers, and use the complement of said reverse primers.",
+)
 def standard_primer_strategy(
     input_fastq: Path,
     primers_dir: Path,
     minimum_primer_threshold: float,
     output_prefix: str,
+    merged: bool,
 ) -> None:
     """Runs the standard primer matching strategy for primer inference.
     A library of standard primers will be searched in input reads using fuzzy regex to identify
@@ -107,7 +117,7 @@ def standard_primer_strategy(
 
     with console.status("[bold yellow]Loading standard primer library..."):
         std_primer_dict_regex, std_primer_dict, primer_count = parse_std_primers(
-            primers_dir
+            primers_dir, merged
         )  # Parse std primer library into dictionaries
         console.log(
             "[bold green]Loading standard primer library :white_check_mark:[/bold green]\n"
@@ -119,14 +129,14 @@ def standard_primer_strategy(
 
     with console.status("[bold yellow]Searching for standard primers..."):
         results = get_primer_props(
-            std_primer_dict_regex, input_fastq, minimum_primer_threshold
+            std_primer_dict_regex, input_fastq, minimum_primer_threshold, merged
         )  # Find all the std primers in the input and select most common
         console.log(
             "[bold green]Searching for standard primers :white_check_mark:[/bold green]\n"
         )
 
     std_primers_fasta, std_primers_info = write_std_output(
-        results, output_prefix, std_primer_dict
+        results, output_prefix, std_primer_dict, merged
     )
 
     if results:

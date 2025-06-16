@@ -27,11 +27,12 @@ from pimento.bin.pimento_utils import (
     fetch_read_substrings,
 )
 
-from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH
+from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH, MAX_READ_COUNT
 
 
 def parse_std_primers(
     primers_dir: Path,
+    merged: bool = False,
 ) -> tuple[defaultdict[defaultdict], defaultdict[defaultdict]]:
     """
     Parse the library of standard primers.
@@ -59,7 +60,7 @@ def parse_std_primers(
         primer_fasta = pyfastx.Fasta(str(primer_file), build_index=False)
 
         for primer_name, primer_seq in primer_fasta:
-            if primer_name[-1] == "R":
+            if merged and primer_name[-1] == "R":
                 primer_seq = str(Seq(primer_seq).complement())
 
             primer_regex = primer_regex_query_builder(primer_seq)
@@ -82,7 +83,7 @@ def run_primer_matching_once(input_path: Path, input_primer: str, rev: bool = Fa
     match_count = 0.0
 
     substring_count_dict = fetch_read_substrings(
-        input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev
+        input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev, max_line_count=MAX_READ_COUNT
     )
 
     for substring in substring_count_dict.keys():
@@ -98,6 +99,7 @@ def get_primer_props(
     std_primer_dict_regex: defaultdict,
     input_fastq: Path,
     min_std_primer_threshold: float,
+    merged: bool = False,
 ) -> list[str, dict]:
     """
     Look for the standard primers in the input fastq file.
@@ -130,15 +132,14 @@ def get_primer_props(
             region_name_str = f"{region};{primer_name}"
             primer_count = 0.0
 
-            if primer_name[-1] == "F":
-                primer_count = run_primer_matching_once(
-                    input_fastq, primer_seq, rev=False
-                )  # Get count of a F primer with fuzzy regex matching
-            elif primer_name[-1] == "R":
+            if merged and primer_name[-1] == "R":
                 primer_count = run_primer_matching_once(
                     input_fastq, primer_seq, rev=True
                 )  # Get count of a R primer with fuzzy regex matching
-
+            else:
+                primer_count = run_primer_matching_once(
+                    input_fastq, primer_seq, rev=False
+                )  # Get count of a F primer with fuzzy regex matching
             try:
                 primer_prop = primer_count / read_count
             except ZeroDivisionError:
@@ -233,7 +234,10 @@ def get_primer_props(
 
 
 def write_std_output(
-    results: list[str, dict], output_prefix: str, std_primer_dict: defaultdict
+    results: list[str, dict],
+    output_prefix: str,
+    std_primer_dict: defaultdict,
+    merged: bool = False,
 ) -> None:
     """
     Save found std primers into a fasta file.
@@ -252,7 +256,7 @@ def write_std_output(
             primer_name = list(results[1].keys())[0]
             primer_prop = results[1][list(results[1].keys())[0]]
             seq = std_primer_dict[region][primer_name]
-            if "R" in primer_name:
+            if merged and "R" in primer_name:
                 seq = str(Seq(seq).complement())
             fw_out.write(f"{region}\n")
             fw_out.write(f"{primer_name}: {primer_prop}")
