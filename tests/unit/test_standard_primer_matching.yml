@@ -9,7 +9,7 @@
 - name: standard_primer_matching test_correct_args
   tags:
     - standard_primer_matching
-  command: pimento std -i tests/fixtures/test.fastq.gz -o sample
+  command: pimento std -i tests/fixtures/test.fastq.gz  --merged -o sample
   files:
     - path: "sample_std_primers.fasta"
       md5sum: f26cdc22a5231d2dbd0831f1f1983dc6
