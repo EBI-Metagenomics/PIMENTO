@@ -51,7 +51,7 @@ Commands:
 
 To run the standard primer strategy:
 ```bash
-pimento std -i <fastq/fastq.gz> -p <primers_dir> -o <output_prefix>
+pimento std -i <fastq/fastq.gz> -p <primers_dir> -o <output_prefix> --merged
 ```
 
 #### Inputs
@@ -74,6 +74,8 @@ CTACCAGGGTATCTAATCC
 Where forward strand primers have the character `F` as the final character, and vice versa `R` for reverse strand primers.
 
 `-o <output_prefix>`: the prefix to be used on output files.
+
+`--merged`: this optional flag should be used when dealing with either **merged paired-end reads**, or **single-end reads**, so that PIMENTO can correctly identify reverse-orientation primers
 
 #### Outputs
 
@@ -121,3 +123,15 @@ pimento are_there_primers -i <fastq/fastq.gz> -o <output_prefix>
 #### Outputs
 
 `<output_prefix>_general_primer_out.txt`: Text file containing a 1 or 0 depending on if a primer was found on the forward strand (first line) and the reverse strand (second line).
+
+
+## Citations
+
+If you use PIMENTO in your work, please cite the Biorxiv pre-print:
+
+>
+>PIMENTO: A PrIMEr infereNce TOolkit to facilitate large-scale calling of amplicon sequence variants
+>
+>Christian Atallah, Lorna Richardson, Martin Beracochea, Robert D. Finn
+>
+>bioRxiv 2025.07.04.663168; doi: https://doi.org/10.1101/2025.07.04.663168
