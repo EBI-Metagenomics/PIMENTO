@@ -119,11 +119,12 @@ pimento are_there_primers -i <fastq/fastq.gz> -o <output_prefix>
 
 `-o <output_prefix>`: the prefix to be used on output files.
 
-
 #### Outputs
 
 `<output_prefix>_general_primer_out.txt`: Text file containing a 1 or 0 depending on if a primer was found on the forward strand (first line) and the reverse strand (second line).
 
+## Licensing
+All of the source code making up PIMENTO in this repository is licensed under the terms of the [Apache 2.0 license](LICENSE). The [standard primer library files](https://github.com/EBI-Metagenomics/PIMENTO/tree/main/pimento/standard_primers) and the [unit test data files](https://github.com/EBI-Metagenomics/PIMENTO/tree/main/tests/fixtures) are licensed under the terms of the [CC0 1.0 Universal (CC0 1.0) licence](https://creativecommons.org/publicdomain/zero/1.0/). 
 
 ## Citations
 
