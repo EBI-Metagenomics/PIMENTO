@@ -117,6 +117,10 @@ def get_primer_props(
     read_count = get_read_count(
         input_fastq, file_type="fastq"
     )  # Get read count of fastq file to calculate proportion with
+
+    if read_count > MAX_READ_COUNT:
+        read_count = MAX_READ_COUNT
+
     res_dict = defaultdict(defaultdict)
 
     std_primer_log = open("all_standard_primer_proportions.txt", "w")
