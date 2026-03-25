@@ -74,12 +74,20 @@ which is necessary if the input sequence file is made up of merged paired-end \
 or single-end reads. Specifically, it will reverse the substrings that are searched\
 for reverse primers, and use the complement of said reverse primers.",
 )
+@click.option(
+    "-t",
+    "--threads",
+    help="Number of threads to use for parallel primer matching. Default is 1.",
+    type=int,
+    default=1,
+)
 def standard_primer_strategy(
     input_fastq: Path,
     primers_dir: Path,
     minimum_primer_threshold: float,
     output_prefix: str,
     merged: bool,
+    threads: int,
 ) -> None:
     """Runs the standard primer matching strategy for primer inference.
     A library of standard primers will be searched in input reads using fuzzy regex to identify
@@ -100,6 +108,8 @@ def standard_primer_strategy(
     :type minimum_primer_threshold: float
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
+    :param threads: Number of threads to use for parallel matching.
+    :type threads: int
     """
     print(
         "[bold grey74]Running [bold green]standard primer strategy[/bold green].[/bold grey74]"
@@ -129,7 +139,11 @@ def standard_primer_strategy(
 
     with console.status("[bold yellow]Searching for standard primers..."):
         results = get_primer_props(
-            std_primer_dict_regex, input_fastq, minimum_primer_threshold, merged
+            std_primer_dict_regex,
+            input_fastq,
+            minimum_primer_threshold,
+            merged,
+            threads,
         )  # Find all the std primers in the input and select most common
         console.log(
             "[bold green]Searching for standard primers :white_check_mark:[/bold green]\n"
