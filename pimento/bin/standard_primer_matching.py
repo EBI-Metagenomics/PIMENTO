@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from collections import defaultdict
+import logging
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 import pyfastx
@@ -29,6 +30,11 @@ from pimento.bin.pimento_utils import (
 )
 
 from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH, MAX_READ_COUNT
+
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("all_standard_primer_proportions.txt", mode="w")
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 
 def parse_std_primers(
@@ -121,8 +127,6 @@ def get_primer_props(
 
     res_dict = defaultdict(dict)
 
-    std_primer_log = open("all_standard_primer_proportions.txt", "w")
-
     substring_count_dict_fwd = fetch_read_substrings(
         input_fastq, STD_PRIMER_READ_PREFIX_LENGTH, False, max_line_count=MAX_READ_COUNT
     )
@@ -183,7 +187,7 @@ def get_primer_props(
             ):  # Only collect primer if it's above threshold
                 res_dict[region]["R"][primer_name] = primer_prop
 
-        std_primer_log.write(f"{region_name_str}:{primer_prop}\n")
+        logger.info(f"{region_name_str}:{primer_prop}\n")
 
     # If an F or/and R primer wasn't found then just remove that key from the dictionary
     for region in list(res_dict.keys()):
@@ -191,8 +195,6 @@ def get_primer_props(
             res_dict[region].pop("F", None)
         if res_dict[region].get("R") == {}:
             res_dict[region].pop("R", None)
-
-    std_primer_log.close()
 
     singles = defaultdict(str)
     doubles = defaultdict(list)
