@@ -187,7 +187,7 @@ def get_primer_props(
             ):  # Only collect primer if it's above threshold
                 res_dict[region]["R"][primer_name] = primer_prop
 
-        logger.info(f"{region_name_str}:{primer_prop}\n")
+        logger.info(f"{region_name_str}:{primer_prop}")
 
     # If an F or/and R primer wasn't found then just remove that key from the dictionary
     for region in list(res_dict.keys()):
