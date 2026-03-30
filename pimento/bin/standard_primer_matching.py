@@ -15,7 +15,9 @@
 # limitations under the License.
 
 from collections import defaultdict
+import logging
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor
 import pyfastx
 
 from Bio.Seq import Seq
@@ -28,6 +30,11 @@ from pimento.bin.pimento_utils import (
 )
 
 from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH, MAX_READ_COUNT
+
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("all_standard_primer_proportions.txt", mode="w")
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 
 def parse_std_primers(
@@ -49,10 +56,10 @@ def parse_std_primers(
             val: primer sequence from 5' to 3' for forward primers, 3' to 5' for reverse
     """
 
-    std_primer_dict_regex = defaultdict(defaultdict)
-    std_primer_dict = defaultdict(defaultdict)
+    std_primer_dict_regex = defaultdict(dict)
+    std_primer_dict = defaultdict(dict)
 
-    primer_files = list(primers_dir.glob("*.fasta"))
+    primer_files = sorted(list(primers_dir.glob("*.fasta")))
 
     primer_count = 0
     for primer_file in primer_files:
@@ -71,26 +78,22 @@ def parse_std_primers(
     return std_primer_dict_regex, std_primer_dict, primer_count
 
 
-def run_primer_matching_once(input_path: Path, input_primer: str, rev: bool = False):
+def run_primer_matching_once(input_primer: str, substring_count_dict: dict):
     """
     Run primer matching using the regex package.
 
-    Takes one primer, strand, and fastq input
-    Uses fuzzy matching to allow for at most one error (for sequencing errors)
-    Returns number of reads matching given primer
+    Takes one primer and a dictionary of read substrings and their counts.
+    Uses fuzzy matching to allow for at most one error (for sequencing errors).
+    Returns number of reads matching given primer.
     """
 
     match_count = 0.0
 
-    substring_count_dict = fetch_read_substrings(
-        input_path, STD_PRIMER_READ_PREFIX_LENGTH, rev, max_line_count=MAX_READ_COUNT
-    )
-
-    for substring in substring_count_dict.keys():
+    for substring, count in substring_count_dict.items():
         substring = substring.strip()
         res = regex.match(input_primer, substring)
         if res is not None:
-            match_count += substring_count_dict[substring]
+            match_count += count
 
     return match_count
 
@@ -100,6 +103,7 @@ def get_primer_props(
     input_fastq: Path,
     min_std_primer_threshold: float,
     merged: bool = False,
+    threads: int = 1,
 ) -> list[str, dict]:
     """
     Look for the standard primers in the input fastq file.
@@ -117,54 +121,80 @@ def get_primer_props(
     read_count = get_read_count(
         input_fastq, file_type="fastq"
     )  # Get read count of fastq file to calculate proportion with
-    res_dict = defaultdict(defaultdict)
 
-    std_primer_log = open("all_standard_primer_proportions.txt", "w")
+    if read_count > MAX_READ_COUNT:
+        read_count = MAX_READ_COUNT
 
+    res_dict = defaultdict(dict)
+
+    substring_count_dict_fwd = fetch_read_substrings(
+        input_fastq, STD_PRIMER_READ_PREFIX_LENGTH, False, max_line_count=MAX_READ_COUNT
+    )
+    substring_count_dict_rev = fetch_read_substrings(
+        input_fastq, STD_PRIMER_READ_PREFIX_LENGTH, True, max_line_count=MAX_READ_COUNT
+    )
+
+    tasks = []
     # Loop through every primer region
-    for region, primer in std_primer_dict_regex.items():
-        res_dict[region]["F"] = {}
-        res_dict[region]["R"] = {}
+    for region, primers in std_primer_dict_regex.items():
+        res_dict[region] = {"F": {}, "R": {}}
 
         # Loop through every primer of a certain region
-        for primer_name, primer_seq in primer.items():
-
-            region_name_str = f"{region};{primer_name}"
-            primer_count = 0.0
-
+        for primer_name, primer_seq in primers.items():
             if merged and primer_name[-1] == "R":
-                primer_count = run_primer_matching_once(
-                    input_fastq, primer_seq, rev=True
-                )  # Get count of a R primer with fuzzy regex matching
+                tasks.append(
+                    (primer_seq, substring_count_dict_rev, region, primer_name)
+                )
             else:
-                primer_count = run_primer_matching_once(
-                    input_fastq, primer_seq, rev=False
-                )  # Get count of a F primer with fuzzy regex matching
-            try:
-                primer_prop = primer_count / read_count
-            except ZeroDivisionError:
-                primer_prop = 0
+                tasks.append(
+                    (primer_seq, substring_count_dict_fwd, region, primer_name)
+                )
 
-            if primer_name[-1] == "F":
-                if (
-                    primer_prop > min_std_primer_threshold
-                ):  # Only collect primer if it's above threshold
-                    res_dict[region]["F"][primer_name] = primer_prop
-            elif primer_name[-1] == "R":
-                if (
-                    primer_prop > min_std_primer_threshold
-                ):  # Only collect primer if it's above threshold
-                    res_dict[region]["R"][primer_name] = primer_prop
+    if threads > 1:
+        with ProcessPoolExecutor(max_workers=threads) as executor:
+            # Using map to ensure order and avoid dictionary overhead with Futures
+            primer_counts = list(
+                executor.map(
+                    run_primer_matching_once,
+                    [t[0] for t in tasks],
+                    [t[1] for t in tasks],
+                )
+            )
+            results_list = [
+                (tasks[i][2], tasks[i][3], primer_counts[i]) for i in range(len(tasks))
+            ]
+    else:
+        results_list = [
+            (t[2], t[3], run_primer_matching_once(t[0], t[1])) for t in tasks
+        ]
 
-            std_primer_log.write(f"{region_name_str}:{primer_prop}\n")
+    for region, primer_name, primer_count in results_list:
+        region_name_str = f"{region};{primer_name}"
 
-        # If an F or/and R primer wasn't found then just remove that key from the dictionary
-        if res_dict[region]["F"] == {}:
-            res_dict[region].pop("F")
-        if res_dict[region]["R"] == {}:
-            res_dict[region].pop("R")
+        try:
+            primer_prop = primer_count / read_count
+        except ZeroDivisionError:
+            primer_prop = 0
 
-    std_primer_log.close()
+        if primer_name[-1] == "F":
+            if (
+                primer_prop > min_std_primer_threshold
+            ):  # Only collect primer if it's above threshold
+                res_dict[region]["F"][primer_name] = primer_prop
+        elif primer_name[-1] == "R":
+            if (
+                primer_prop > min_std_primer_threshold
+            ):  # Only collect primer if it's above threshold
+                res_dict[region]["R"][primer_name] = primer_prop
+
+        logger.info(f"{region_name_str}:{primer_prop}")
+
+    # If an F or/and R primer wasn't found then just remove that key from the dictionary
+    for region in list(res_dict.keys()):
+        if res_dict[region].get("F") == {}:
+            res_dict[region].pop("F", None)
+        if res_dict[region].get("R") == {}:
+            res_dict[region].pop("R", None)
 
     singles = defaultdict(str)
     doubles = defaultdict(list)

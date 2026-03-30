@@ -77,6 +77,8 @@ Where forward strand primers have the character `F` as the final character, and 
 
 `--merged`: this optional flag should be used when dealing with either **merged paired-end reads**, or **single-end reads**, so that PIMENTO can correctly identify reverse-orientation primers
 
+`-t <threads>`: this optional parameter allows you to specify the number of threads to be used for the search. Default of 1.
+
 #### Outputs
 
 `<output_prefix>_std_primers.fasta`: FASTA file containing the best found single or pairs of primers. Empty if none were found.
@@ -124,7 +126,7 @@ pimento are_there_primers -i <fastq/fastq.gz> -o <output_prefix>
 `<output_prefix>_general_primer_out.txt`: Text file containing a 1 or 0 depending on if a primer was found on the forward strand (first line) and the reverse strand (second line).
 
 ## Licensing
-All of the source code making up PIMENTO in this repository is licensed under the terms of the [Apache 2.0 license](LICENSE). The [standard primer library files](https://github.com/EBI-Metagenomics/PIMENTO/tree/main/pimento/standard_primers) and the [unit test data files](https://github.com/EBI-Metagenomics/PIMENTO/tree/main/tests/fixtures) are licensed under the terms of the [CC0 1.0 Universal (CC0 1.0) licence](https://creativecommons.org/publicdomain/zero/1.0/). 
+All of the source code making up PIMENTO in this repository is licensed under the terms of the [Apache 2.0 license](LICENSE). The [standard primer library files](https://github.com/EBI-Metagenomics/PIMENTO/tree/main/pimento/standard_primers) and the [unit test data files](https://github.com/EBI-Metagenomics/PIMENTO/tree/main/tests/fixtures) are licensed under the terms of the [CC0 1.0 Universal (CC0 1.0) licence](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## Citations
 

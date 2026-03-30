@@ -13,3 +13,11 @@
   files:
     - path: "sample_std_primers.fasta"
       md5sum: f26cdc22a5231d2dbd0831f1f1983dc6
+
+- name: standard_primer_matching test_threads
+  tags:
+    - standard_primer_matching
+  command: pimento std -i tests/fixtures/test.fastq.gz --threads 2 --merged -o sample_threads
+  files:
+    - path: "sample_threads_std_primers.fasta"
+      md5sum: f26cdc22a5231d2dbd0831f1f1983dc6
