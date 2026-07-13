@@ -48,6 +48,13 @@ class TestStandardPrimerThresholds:
 
         Verifies that custom value (0.75) is passed to get_primer_props() instead of
         default value (0.60).
+
+        :param mock_parse: Mock for parse_std_primers function.
+        :type mock_parse: MagicMock
+        :param mock_get_props: Mock for get_primer_props function.
+        :type mock_get_props: MagicMock
+        :param mock_write: Mock for write_std_output function.
+        :type mock_write: MagicMock
         """
         # Setup mocks
         mock_parse.return_value = ({}, {}, 0)
@@ -92,6 +99,13 @@ class TestStandardPrimerThresholds:
 
         Verifies that custom value (75) is passed to get_primer_props() instead of
         default value (50).
+
+        :param mock_parse: Mock for parse_std_primers function.
+        :type mock_parse: MagicMock
+        :param mock_get_props: Mock for get_primer_props function.
+        :type mock_get_props: MagicMock
+        :param mock_write: Mock for write_std_output function.
+        :type mock_write: MagicMock
         """
         # Setup mocks
         mock_parse.return_value = ({}, {}, 0)
@@ -136,6 +150,13 @@ class TestStandardPrimerThresholds:
 
         Verifies that custom value (100000) is passed to get_primer_props() instead of
         default value (300000).
+
+        :param mock_parse: Mock for parse_std_primers function.
+        :type mock_parse: MagicMock
+        :param mock_get_props: Mock for get_primer_props function.
+        :type mock_get_props: MagicMock
+        :param mock_write: Mock for write_std_output function.
+        :type mock_write: MagicMock
         """
         # Setup mocks
         mock_parse.return_value = ({}, {}, 0)
@@ -180,6 +201,13 @@ class TestStandardPrimerThresholds:
 
         Verifies that --minimum_primer_threshold, --std_primer_read_prefix_length,
         and --max_read_count can all be customized simultaneously.
+
+        :param mock_parse: Mock for parse_std_primers function.
+        :type mock_parse: MagicMock
+        :param mock_get_props: Mock for get_primer_props function.
+        :type mock_get_props: MagicMock
+        :param mock_write: Mock for write_std_output function.
+        :type mock_write: MagicMock
         """
         # Setup mocks
         mock_parse.return_value = ({}, {}, 0)
@@ -243,6 +271,13 @@ class TestGenerateBCVThresholds:
 
         Verifies that custom value (200000) is passed to generate_bcv_for_single_strand()
         instead of default value (300000). Tests with strand='FR' which passes max_read_count.
+
+        :param mock_generate_bcv: Mock for generate_bcv_for_single_strand function.
+        :type mock_generate_bcv: MagicMock
+        :param mock_write: Mock for write_bcv_output function.
+        :type mock_write: MagicMock
+        :param mock_path_convert: Mock for click.Path.convert to bypass file validation.
+        :type mock_path_convert: MagicMock
         """
         # Mock path conversion to bypass file existence checks
         mock_path_convert.return_value = Path("mock_input.fastq.gz")
@@ -303,6 +338,13 @@ class TestChoosePrimerCutoffThresholds:
 
         Verifies that custom value (250000) is passed to choose_cutoff_for_single_strand()
         instead of default value (300000).
+
+        :param mock_read_csv: Mock for pandas.read_csv function.
+        :type mock_read_csv: MagicMock
+        :param mock_choose: Mock for choose_cutoff_for_single_strand function.
+        :type mock_choose: MagicMock
+        :param mock_path_convert: Mock for click.Path.convert to bypass file validation.
+        :type mock_path_convert: MagicMock
         """
         # Setup mocks - simulate dataframe with one forward primer cutoff
         import pandas as pd
@@ -366,6 +408,19 @@ class TestAutoPipelineThresholds:
 
         Verifies that custom value (175000) is passed through the entire auto pipeline
         (gen_bcv -> find_cutoffs -> choose_primer_cutoff).
+
+        :param mock_read_csv: Mock for pandas.read_csv function.
+        :type mock_read_csv: MagicMock
+        :param mock_generate_bcv: Mock for generate_bcv_for_single_strand function.
+        :type mock_generate_bcv: MagicMock
+        :param mock_find_cutoffs: Mock for find_bcv_inflection_points function.
+        :type mock_find_cutoffs: MagicMock
+        :param mock_choose: Mock for choose_cutoff_for_single_strand function.
+        :type mock_choose: MagicMock
+        :param mock_fasta: Mock for pyfastx.Fasta class.
+        :type mock_fasta: MagicMock
+        :param mock_path_convert: Mock for click.Path.convert to bypass file validation.
+        :type mock_path_convert: MagicMock
         """
         import pandas as pd
 

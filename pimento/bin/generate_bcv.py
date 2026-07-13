@@ -40,9 +40,14 @@ def generate_bcv_for_single_strand(
     The resulting list of base-conservations can be considered a conservation vector and used to
     identify inflection points where the conservation suddenly changes.
 
-    Output a dictionary where:
-        key -> an index starting point e.g. base 10
-        val -> the avg conservation of the most common base for the substring window from base 10 to 15 (inclusive)
+    :param path: Path to the input FASTQ file.
+    :type path: Path
+    :param max_read_count: Maximum number of reads to process. Default from thresholds.py.
+    :type max_read_count: int
+    :param rev: Whether to process reverse strand. Defaults to False (forward strand).
+    :type rev: bool
+    :return: Dictionary where key is index starting point and value is average base conservation for that window.
+    :rtype: defaultdict[float]
     """
 
     res_dict = defaultdict(float)
@@ -85,6 +90,13 @@ def write_bcv_output(
     R	0.9010981697171381	0.9082861896838601	0.90369384359401
 
     Columns are the starting indices. Row labels are the strand.
+
+    :param fwd_out: Dictionary of base-conservation values for forward strand. Defaults to empty dict.
+    :type fwd_out: defaultdict[float]
+    :param rev_out: Dictionary of base-conservation values for reverse strand. Defaults to empty dict.
+    :type rev_out: defaultdict[float]
+    :return: Pandas DataFrame with strands as rows and starting indices as columns.
+    :rtype: pandas.DataFrame
     """
 
     final_res_dict = defaultdict(list)

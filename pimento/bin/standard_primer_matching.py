@@ -45,13 +45,15 @@ def parse_std_primers(
     Reads the fasta files in the given directory
     Primer names (which are the fasta headers) are labeled with F or R for 5'-3' and 3'-5' primers respectively
 
-    Returns two dictionaries:
-        std_primer_dict_regex
-            key: region+primer name
-            val: primer sequence from 5' to 3'
-        std_primer_dict
-            key: region+primer name
-            val: primer sequence from 5' to 3' for forward primers, 3' to 5' for reverse
+    :param primers_dir: Path to directory containing standard primer FASTA files.
+    :type primers_dir: Path
+    :param merged: Whether sequences are merged paired-end or single-end. Affects reverse primer handling.
+        Defaults to False.
+    :type merged: bool
+    :return: Tuple of two dictionaries: (std_primer_dict_regex, std_primer_dict).
+             std_primer_dict_regex contains 5'->3' sequences for regex matching.
+             std_primer_dict contains oriented sequences (5'->3' for F, 3'->5' for R).
+    :rtype: tuple[defaultdict[defaultdict], defaultdict[defaultdict]]
     """
 
     std_primer_dict_regex = defaultdict(dict)
@@ -113,9 +115,22 @@ def get_primer_props(
     If there is an std primer for both the F and R strands, the maximum prop for each strand is chosen and the pair
     is output as a combination.
 
-    Returns a list containing two elements:
-        max_region: the amplified region the chosen primers belong to
-        max_primers: dictionary containing the F and/or R primers that were chosen
+    :param std_primer_dict_regex: Dictionary of standard primers with regex patterns for fuzzy matching.
+    :type std_primer_dict_regex: defaultdict
+    :param input_fastq: Path to the input FASTQ file.
+    :type input_fastq: Path
+    :param min_std_primer_threshold: Minimum proportion threshold for primer detection. Default from thresholds.py.
+    :type min_std_primer_threshold: float
+    :param std_primer_read_prefix_length: Length of read prefix to search for primers. Default from thresholds.py.
+    :type std_primer_read_prefix_length: int
+    :param max_read_count: Maximum number of reads to process. Default from thresholds.py.
+    :type max_read_count: int
+    :param merged: Whether the input is merged paired-end or single-end reads. Defaults to False.
+    :type merged: bool
+    :param threads: Number of parallel threads for processing. Defaults to 1.
+    :type threads: int
+    :return: List containing the amplified region name and dictionary of detected primers (F and/or R).
+    :rtype: list[str, dict]
     """
 
     read_count = get_read_count(
