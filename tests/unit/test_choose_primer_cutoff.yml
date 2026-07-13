@@ -26,4 +26,4 @@
   command: pimento choose_primer_cutoff -i tests/fixtures/test.fastq.gz -p tests/fixtures/test_cutoffs.tsv --max_read_count 10 -o sample
   files:
     - path: "sample_auto_primers.fasta"
-      md5sum: c36ff305d6aec14df3b7a61cb702101e
+      md5sum: d75457debd829fbe24d210c047db14ca
