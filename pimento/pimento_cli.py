@@ -18,7 +18,10 @@ from pimento.bin.generate_bcv import generate_bcv_for_single_strand, write_bcv_o
 from pimento.bin.find_cutoffs import find_bcv_inflection_points
 from pimento.bin.choose_primer_cutoff import choose_cutoff_for_single_strand
 
-from pimento.bin.thresholds import MIN_STD_PRIMER_THRESHOLD
+from pimento.bin.thresholds import (
+    MIN_STD_PRIMER_THRESHOLD,
+    STD_PRIMER_READ_PREFIX_LENGTH,
+)
 
 console = Console()
 __version__ = importlib.metadata.version("mi-pimento")
@@ -63,6 +66,14 @@ in to be considered in inference. Default value of 0.60.",
     default=MIN_STD_PRIMER_THRESHOLD,
 )
 @click.option(
+    "-l",
+    "--std_primer_read_prefix_length",
+    help="The read prefix length that is read for inferring the presence of\
+standard primers. Default value of 50.",
+    type=int,
+    default=STD_PRIMER_READ_PREFIX_LENGTH,
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 @click.option(
@@ -85,6 +96,7 @@ def standard_primer_strategy(
     input_fastq: Path,
     primers_dir: Path,
     minimum_primer_threshold: float,
+    std_primer_read_prefix_length: int,
     output_prefix: str,
     merged: bool,
     threads: int,
@@ -142,6 +154,7 @@ def standard_primer_strategy(
             std_primer_dict_regex,
             input_fastq,
             minimum_primer_threshold,
+            std_primer_read_prefix_length,
             merged,
             threads,
         )  # Find all the std primers in the input and select most common

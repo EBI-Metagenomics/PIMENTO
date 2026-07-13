@@ -29,7 +29,7 @@ from pimento.bin.pimento_utils import (
     fetch_read_substrings,
 )
 
-from pimento.bin.thresholds import STD_PRIMER_READ_PREFIX_LENGTH, MAX_READ_COUNT
+from pimento.bin.thresholds import MAX_READ_COUNT
 
 logger = logging.getLogger(__name__)
 handler = logging.FileHandler("all_standard_primer_proportions.txt", mode="w")
@@ -102,6 +102,7 @@ def get_primer_props(
     std_primer_dict_regex: defaultdict,
     input_fastq: Path,
     min_std_primer_threshold: float,
+    std_primer_read_prefix_length: int,
     merged: bool = False,
     threads: int = 1,
 ) -> list[str, dict]:
@@ -128,10 +129,10 @@ def get_primer_props(
     res_dict = defaultdict(dict)
 
     substring_count_dict_fwd = fetch_read_substrings(
-        input_fastq, STD_PRIMER_READ_PREFIX_LENGTH, False, max_line_count=MAX_READ_COUNT
+        input_fastq, std_primer_read_prefix_length, False, max_line_count=MAX_READ_COUNT
     )
     substring_count_dict_rev = fetch_read_substrings(
-        input_fastq, STD_PRIMER_READ_PREFIX_LENGTH, True, max_line_count=MAX_READ_COUNT
+        input_fastq, std_primer_read_prefix_length, True, max_line_count=MAX_READ_COUNT
     )
 
     tasks = []
