@@ -24,11 +24,11 @@ from pimento.bin.pimento_utils import (
     build_list_of_base_counts,
     fetch_read_substrings,
 )
-from pimento.bin.thresholds import CONSENSUS_BASE_THRESHOLD, MAX_READ_COUNT
+from pimento.bin.thresholds import CONSENSUS_BASE_THRESHOLD
 
 
 def choose_cutoff_for_single_strand(
-    input_fastq: Path, cutoff_list: list[int], rev: bool = False
+    input_fastq: Path, cutoff_list: list[int], max_read_count: int, rev: bool = False
 ) -> None:
     """
     Assess inflection point list, selecting one for automatic primer trimming.
@@ -55,8 +55,8 @@ def choose_cutoff_for_single_strand(
     read_count = get_read_count(input_fastq)  # get readcount from fastq
 
     max_line_count = 0
-    if read_count > MAX_READ_COUNT:
-        max_line_count = MAX_READ_COUNT
+    if read_count > max_read_count:
+        max_line_count = max_read_count
 
     for start in cutoff_list:  # Looping through the pre-inflection point substrings
         substring_len = (

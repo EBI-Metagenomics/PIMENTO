@@ -20,3 +20,10 @@
   files:
     - path: "sample_auto_primers.fasta"
       md5sum: b6abc080cbb4390dce82b23fc176f3c2
+- name: choose_primer_cutoff test_different_threshold
+  tags:
+    - choose_primer_cutoff
+  command: pimento choose_primer_cutoff -i tests/fixtures/test.fastq.gz -p tests/fixtures/test_cutoffs.tsv --max_read_count 10 -o sample
+  files:
+    - path: "sample_auto_primers.fasta"
+      md5sum: c36ff305d6aec14df3b7a61cb702101e

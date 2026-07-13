@@ -21,6 +21,7 @@ from pimento.bin.choose_primer_cutoff import choose_cutoff_for_single_strand
 from pimento.bin.thresholds import (
     MIN_STD_PRIMER_THRESHOLD,
     STD_PRIMER_READ_PREFIX_LENGTH,
+    MAX_READ_COUNT,
 )
 
 console = Console()
@@ -74,6 +75,14 @@ standard primers. Default value of 50.",
     default=STD_PRIMER_READ_PREFIX_LENGTH,
 )
 @click.option(
+    "-c",
+    "--max_read_count",
+    help="The maximum number of reads used to infer the presence of\
+standard primers, to increase speed. Default value of 300,000.",
+    type=int,
+    default=MAX_READ_COUNT,
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 @click.option(
@@ -97,6 +106,7 @@ def standard_primer_strategy(
     primers_dir: Path,
     minimum_primer_threshold: float,
     std_primer_read_prefix_length: int,
+    max_read_count: int,
     output_prefix: str,
     merged: bool,
     threads: int,
@@ -155,6 +165,7 @@ def standard_primer_strategy(
             input_fastq,
             minimum_primer_threshold,
             std_primer_read_prefix_length,
+            max_read_count,
             merged,
             threads,
         )  # Find all the std primers in the input and select most common
@@ -263,10 +274,18 @@ def are_there_primers(input_fastq: Path, output_prefix: str) -> None:
     required=True,
 )
 @click.option(
+    "-c",
+    "--max_read_count",
+    help="The maximum number of reads used to infer the presence of\
+standard primers, to increase speed. Default value of 300,000.",
+    type=int,
+    default=MAX_READ_COUNT,
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 def generate_base_conservation_vector(
-    input_fastq: Path, strand: str, output_prefix: str
+    input_fastq: Path, strand: str, max_read_count: int, output_prefix: str
 ) -> Path:
     """Generates base-conservation vector(s) for input fastq files.
     To be used by the primer cutoff inference strategy, this function computes the base-conservation
@@ -292,14 +311,18 @@ def generate_base_conservation_vector(
         # with a match-case block.
 
         if strand == "FR":
-            fwd_bcv = generate_bcv_for_single_strand(input_fastq)
-            rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
+            fwd_bcv = generate_bcv_for_single_strand(input_fastq, max_read_count)
+            rev_bcv = generate_bcv_for_single_strand(
+                input_fastq, max_read_count, rev=True
+            )
             res_df = write_bcv_output(fwd_bcv, rev_bcv)
         elif strand == "F":
             fwd_bcv = generate_bcv_for_single_strand(input_fastq)
             res_df = write_bcv_output(fwd_bcv)
         elif strand == "R":
-            rev_bcv = generate_bcv_for_single_strand(input_fastq, rev=True)
+            rev_bcv = generate_bcv_for_single_strand(
+                input_fastq, max_read_count, rev=True
+            )
             res_df = write_bcv_output(rev_out=rev_bcv)
 
         # Save resulting dataframe to a tsv file
@@ -385,10 +408,18 @@ def find_potential_cutoffs(input_bcv: Path, output_prefix: str) -> Path:
     type=click.Path(exists=True, path_type=Path, dir_okay=False),
 )
 @click.option(
+    "-c",
+    "--max_read_count",
+    help="The maximum number of reads used to infer the presence of\
+standard primers, to increase speed. Default value of 300,000.",
+    type=int,
+    default=MAX_READ_COUNT,
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 def choose_primer_cutoff(
-    input_fastq: Path, primer_cutoffs: Path, output_prefix: str
+    input_fastq: Path, primer_cutoffs: Path, max_read_count: int, output_prefix: str
 ) -> Path:
     """Choose the optimal primer cutoff point from an input set.
     Using patterns of base-conservation in reads and a set of potential cutoff points
@@ -422,13 +453,13 @@ def choose_primer_cutoff(
         if not f_slice.empty:  # if there is a forward inflection point..
             cutoff_list = f_slice.inf_point.tolist()
             f_cutoff, f_primer = choose_cutoff_for_single_strand(
-                input_fastq, cutoff_list
+                input_fastq, cutoff_list, max_read_count
             )  # .. assess and select
 
         if not r_slice.empty:  # if there is a reverse inflection point..
             cutoff_list = r_slice.inf_point.tolist()
             r_cutoff, r_primer = choose_cutoff_for_single_strand(
-                input_fastq, cutoff_list, rev=True
+                input_fastq, cutoff_list, max_read_count, rev=True
             )  # .. assess and select
 
         # Output cutoff point(s) to .txt file
@@ -472,6 +503,14 @@ def choose_primer_cutoff(
     required=True,
 )
 @click.option(
+    "-c",
+    "--max_read_count",
+    help="The maximum number of reads used to infer the presence of\
+standard primers, to increase speed. Default value of 300,000.",
+    type=int,
+    default=MAX_READ_COUNT,
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 @click.pass_context
@@ -479,6 +518,7 @@ def primer_cutoff_strategy(
     ctx: click.Context,
     input_fastq: Path,
     strand: str,
+    max_read_count: int,
     output_prefix: str,
 ) -> None:
     """Runs the primer cutoff strategy for primer inference.
@@ -515,6 +555,7 @@ def primer_cutoff_strategy(
         generate_base_conservation_vector,
         input_fastq=input_fastq,
         strand=strand,
+        max_read_count=max_read_count,
         output_prefix=output_prefix,
     )
 
@@ -526,6 +567,7 @@ def primer_cutoff_strategy(
         choose_primer_cutoff,
         input_fastq=input_fastq,
         primer_cutoffs=cutoffs_path,
+        max_read_count=max_read_count,
         output_prefix=output_prefix,
     )
 

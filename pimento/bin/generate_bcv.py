@@ -26,10 +26,12 @@ from pimento.bin.pimento_utils import (
     build_list_of_base_counts,
     fetch_read_substrings,
 )
-from pimento.bin.thresholds import MAX_READ_COUNT, BCV_WINDOW_SIZE
+from pimento.bin.thresholds import BCV_WINDOW_SIZE
 
 
-def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict[float]:
+def generate_bcv_for_single_strand(
+    path: Path, max_read_count: int, rev: bool = False
+) -> defaultdict[float]:
     """
     Generate base-conservation vectors in a stepwise and windowed manner for a fastq file.
 
@@ -53,8 +55,8 @@ def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict
         )  # get read count for fastq file
 
         max_line_count = 0
-        if read_count > MAX_READ_COUNT:
-            max_line_count = MAX_READ_COUNT
+        if read_count > max_read_count:
+            max_line_count = max_read_count
 
         read_substring_count_dict = fetch_read_substrings(
             path, BCV_WINDOW_SIZE, rev, start, max_line_count
