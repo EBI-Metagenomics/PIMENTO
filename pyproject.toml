@@ -1,6 +1,6 @@
 [project]
 name = "mi-pimento"
-version = "1.0.3"
+version = "1.1.0"
 readme = "README.md"
 license = {text = "Apache Software License 2.0"}
 authors = [
@@ -8,7 +8,7 @@ authors = [
 ]
 keywords = ["bioinformatics", "pipelines", "metagenomics", "primers", "reads", "sequencing"]
 description = "A PrIMEr infereNce TOolkit to facilitate large-scale calling of metabarcoding amplicon sequence variants"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
@@ -17,11 +17,11 @@ classifiers = [
 
 dependencies = [
     "biopython==1.86",
-    "numpy==1.26.0",
-    "pandas==2.0.2",
-    "regex==2023.12.25",
+    "numpy==2.5.1",
+    "pandas==3.0.3",
+    "regex==2026.7.10",
     "click==8.1.7",
-    "pyfastx>=2.2.0",
+    "pyfastx==2.3.1",
     "rich==13.9.4"
 ]
 
@@ -45,18 +45,18 @@ tests = [
     "pytest-md==0.2.0",
     "pytest-workflow==2.0.1",
     "biopython==1.86",
-    "pandas==2.0.2",
-    "numpy==1.26.0",
-    "regex==2023.12.25",
+    "pandas==3.0.3",
+    "numpy==2.5.1",
+    "regex==2026.7.10",
     "click==8.1.7",
-    "pyfastx>=2.2.0",
+    "pyfastx==2.3.1",
     "rich==13.9.4"
 
 ]
 
 dev = [
     "mi-pimento[tests]",
-    "pre-commit==3.8.0",
+    "pre-commit==4.6.0",
     "black==24.8.0",
     "flake8==7.1.1",
     "pep8-naming==0.14.1"
