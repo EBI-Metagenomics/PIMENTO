@@ -1,6 +1,6 @@
 [project]
 name = "mi-pimento"
-version = "1.1.0"
+version = "1.2.0"
 readme = "README.md"
 license = {text = "Apache Software License 2.0"}
 authors = [
