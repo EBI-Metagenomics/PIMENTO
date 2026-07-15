@@ -28,10 +28,10 @@ def find_bcv_inflection_points(bcv_df):
     Takes the list of average base conservations and gets the derivative of the curve
     Keep any points of the derivative where value is above the 80th percentile
 
-    Outputs a dictionary with key-val pairs where vals are lists:
-        'strand' -> strand list
-        'inf_point' -> inf_point list
-
+    :param bcv_df: Pandas DataFrame containing base-conservation vectors from generate_bcv_for_single_strand().
+    :type bcv_df: pandas.DataFrame
+    :return: Dictionary with 'strand' and 'inf_point' keys, each mapping to lists of values.
+    :rtype: dict
     """
 
     inf_point_dict = defaultdict(list)

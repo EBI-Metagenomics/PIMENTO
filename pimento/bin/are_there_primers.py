@@ -38,9 +38,12 @@ def atp_in_this_sample(input_fastq: Path, rev: bool = False) -> bool:
     of a primer is flagged as true. A primer is also flagged as true if the combined count
     of bases below Q3 is at most 4.
 
-    The output of this function is a boolean flag:
-        True if a primer was identified
-        False if a primer was not identified
+    :param input_fastq: Path to the input FASTQ file.
+    :type input_fastq: Path
+    :param rev: Whether to process reverse strand. Defaults to False (forward strand).
+    :type rev: bool
+    :return: Boolean flag indicating primer presence (True if detected, False otherwise).
+    :rtype: bool
     """
 
     read_count = get_read_count(
@@ -107,6 +110,11 @@ def write_atp_output(results: tuple[bool, bool], output_prefix: str) -> None:
 
     First line will be the forward strand
     Second line will be the reverse strand
+
+    :param results: Tuple of two boolean values (forward_flag, reverse_flag) indicating primer presence.
+    :type results: tuple[bool, bool]
+    :param output_prefix: Prefix for the output filename.
+    :type output_prefix: str
     """
 
     with open(f"{output_prefix}_general_primer_out.txt", "w") as fw:

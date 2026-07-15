@@ -26,10 +26,12 @@ from pimento.bin.pimento_utils import (
     build_list_of_base_counts,
     fetch_read_substrings,
 )
-from pimento.bin.thresholds import MAX_READ_COUNT, BCV_WINDOW_SIZE
+from pimento.bin.thresholds import BCV_WINDOW_SIZE
 
 
-def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict[float]:
+def generate_bcv_for_single_strand(
+    path: Path, max_read_count: int, rev: bool = False
+) -> defaultdict[float]:
     """
     Generate base-conservation vectors in a stepwise and windowed manner for a fastq file.
 
@@ -38,9 +40,14 @@ def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict
     The resulting list of base-conservations can be considered a conservation vector and used to
     identify inflection points where the conservation suddenly changes.
 
-    Output a dictionary where:
-        key -> an index starting point e.g. base 10
-        val -> the avg conservation of the most common base for the substring window from base 10 to 15 (inclusive)
+    :param path: Path to the input FASTQ file.
+    :type path: Path
+    :param max_read_count: Maximum number of reads to process. Default from thresholds.py.
+    :type max_read_count: int
+    :param rev: Whether to process reverse strand. Defaults to False (forward strand).
+    :type rev: bool
+    :return: Dictionary where key is index starting point and value is average base conservation for that window.
+    :rtype: defaultdict[float]
     """
 
     res_dict = defaultdict(float)
@@ -53,8 +60,8 @@ def generate_bcv_for_single_strand(path: Path, rev: bool = False) -> defaultdict
         )  # get read count for fastq file
 
         max_line_count = 0
-        if read_count > MAX_READ_COUNT:
-            max_line_count = MAX_READ_COUNT
+        if read_count > max_read_count:
+            max_line_count = max_read_count
 
         read_substring_count_dict = fetch_read_substrings(
             path, BCV_WINDOW_SIZE, rev, start, max_line_count
@@ -83,6 +90,13 @@ def write_bcv_output(
     R	0.9010981697171381	0.9082861896838601	0.90369384359401
 
     Columns are the starting indices. Row labels are the strand.
+
+    :param fwd_out: Dictionary of base-conservation values for forward strand. Defaults to empty dict.
+    :type fwd_out: defaultdict[float]
+    :param rev_out: Dictionary of base-conservation values for reverse strand. Defaults to empty dict.
+    :type rev_out: defaultdict[float]
+    :return: Pandas DataFrame with strands as rows and starting indices as columns.
+    :rtype: pandas.DataFrame
     """
 
     final_res_dict = defaultdict(list)

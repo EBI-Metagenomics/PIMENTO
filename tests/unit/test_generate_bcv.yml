@@ -20,3 +20,10 @@
   files:
     - path: "sample_bcv.tsv"
       md5sum: e4e43a0b9eb6c1c7d1cf9f10926b24c3
+- name: generate_bcv test_different_threshold
+  tags:
+    - generate_bcv
+  command: pimento gen_bcv -i tests/fixtures/test.fastq.gz -st FR --max_read_count 10 -o sample
+  files:
+    - path: "sample_bcv.tsv"
+      md5sum: 2aa8e5bdfb20601bf887e9018c8290f1
