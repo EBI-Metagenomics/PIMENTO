@@ -137,8 +137,16 @@ def standard_primer_strategy(
     :param minimum_primer_threshold: The minimum matching proportion threshold for a primer to be considered.
     The current default value for this threshold is a proportion of 0.60 of reads. Users can customise this value.
     :type minimum_primer_threshold: float
+    :param std_primer_read_prefix_length: Length of read prefix to search for primers.
+    :type std_primer_read_prefix_length: int
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
+    :param std_primer_error_rate: The maximum error rate allowed for standard primers.
+    :type std_primer_error_rate: float
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
+    :param merged: Whether the input is merged paired-end or single-end reads.
+    :type merged: bool
     :param threads: Number of threads to use for parallel matching.
     :type threads: int
     """
@@ -305,6 +313,8 @@ def generate_base_conservation_vector(
     :type input_fastq: Path
     :param strand: The strand(s) to perform primer inference for. Values can be either F, R, or FR for both.
     :type strand: str
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     :return: TSV file containing the base-conservation vector.
@@ -441,6 +451,8 @@ def choose_primer_cutoff(
     :type input_fastq: Path
     :param primer_cutoffs: TSV file containing the potential cutoff points to consider.
     :type primer_cutoffs: Path
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     :return: The output FASTA file containing the inferred primer sequences.
@@ -542,6 +554,8 @@ def primer_cutoff_strategy(
     :type input_fastq: Path
     :param strand: The strand(s) to perform primer inference for. Values can be either F, R, or FR for both.
     :type strand: str
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     """
