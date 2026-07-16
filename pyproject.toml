@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "biopython==1.86",
+    "biopython==1.87",
     "numpy==2.5.1",
     "pandas==3.0.3",
     "regex==2026.7.10",
@@ -41,10 +41,10 @@ pimento = "pimento.pimento_cli:cli"
 
 [project.optional-dependencies]
 tests = [
-    "pytest==7.4.0",
+    "pytest==9.0.3",
     "pytest-md==0.2.0",
     "pytest-workflow==2.0.1",
-    "biopython==1.86",
+    "biopython==1.87",
     "pandas==3.0.3",
     "numpy==2.5.1",
     "regex==2026.7.10",
