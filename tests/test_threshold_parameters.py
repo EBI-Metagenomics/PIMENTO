@@ -31,6 +31,7 @@ from pimento.bin.thresholds import (
     MIN_STD_PRIMER_THRESHOLD,
     STD_PRIMER_READ_PREFIX_LENGTH,
     MAX_READ_COUNT,
+    STD_PRIMER_ERROR_RATE,
 )
 
 
@@ -189,6 +190,57 @@ class TestStandardPrimerThresholds:
         # Fifth positional argument is max_read_count
         assert call_args[4] == custom_max_read_count
         assert call_args[4] != MAX_READ_COUNT
+
+    @patch("pimento.pimento_cli.write_std_output")
+    @patch("pimento.pimento_cli.get_primer_props")
+    @patch("pimento.pimento_cli.parse_std_primers")
+    def test_std_primer_error_rate_custom(
+        self, mock_parse: MagicMock, mock_get_props: MagicMock, mock_write: MagicMock
+    ) -> None:
+        """
+        Test that --std_primer_error_rate parameter overrides STD_PRIMER_ERROR_RATE default.
+
+        Verifies that custom value (0.2) is passed to parse_std_primers() instead of
+        default value (0.1).
+
+        :param mock_parse: Mock for parse_std_primers function.
+        :type mock_parse: MagicMock
+        :param mock_get_props: Mock for get_primer_props function.
+        :type mock_get_props: MagicMock
+        :param mock_write: Mock for write_std_output function.
+        :type mock_write: MagicMock
+        """
+        # Setup mocks
+        mock_parse.return_value = ({}, {}, 0)
+        mock_get_props.return_value = []
+        mock_write.return_value = (Path("test.fasta"), Path("test.txt"))
+
+        runner = CliRunner()
+        custom_error_rate = 0.2
+
+        result = runner.invoke(
+            cli,
+            [
+                "std",
+                "--input_fastq",
+                "tests/fixtures/test.fastq.gz",
+                "--output_prefix",
+                "test_output",
+                "--std_primer_error_rate",
+                str(custom_error_rate),
+                "--merged",
+            ],
+        )
+
+        # Verify command executed successfully
+        assert result.exit_code == 0
+
+        # Verify parse_std_primers was called with custom error rate
+        assert mock_parse.called
+        call_args = mock_parse.call_args[0]
+        # Second positional argument is std_primer_error_rate
+        assert call_args[1] == custom_error_rate
+        assert call_args[1] != STD_PRIMER_ERROR_RATE
 
     @patch("pimento.pimento_cli.write_std_output")
     @patch("pimento.pimento_cli.get_primer_props")
