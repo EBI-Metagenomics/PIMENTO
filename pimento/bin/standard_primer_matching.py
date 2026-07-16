@@ -37,6 +37,7 @@ logger.setLevel(logging.INFO)
 
 def parse_std_primers(
     primers_dir: Path,
+    std_primer_error_rate: float,
     merged: bool = False,
 ) -> tuple[defaultdict[defaultdict], defaultdict[defaultdict]]:
     """
@@ -70,7 +71,7 @@ def parse_std_primers(
             if merged and primer_name[-1] == "R":
                 primer_seq = str(Seq(primer_seq).complement())
 
-            primer_regex = primer_regex_query_builder(primer_seq)
+            primer_regex = primer_regex_query_builder(primer_seq, std_primer_error_rate)
             std_primer_dict_regex[region][primer_name] = primer_regex
             std_primer_dict[region][primer_name] = primer_seq
             primer_count += 1

@@ -14,10 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# used by bin.amplicon_utils.fetch_read_substrings
+# used by bin.pimento_utils.fetch_read_substrings
 MAX_READ_COUNT = 300_000
-# used by bin.amplicon_utils.build_cons_seq
+# used by bin.pimento_utils.build_cons_seq
 CONSENSUS_BASE_THRESHOLD = 0.80
+# used by bin.pimento_utils.primer_regex_query_builder
+STD_PRIMER_ERROR_RATE = 0.1
 
 # used by pimento.standard_primer_strategy
 MIN_STD_PRIMER_THRESHOLD = 0.60

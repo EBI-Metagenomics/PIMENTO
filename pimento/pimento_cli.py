@@ -22,6 +22,7 @@ from pimento.bin.thresholds import (
     MIN_STD_PRIMER_THRESHOLD,
     STD_PRIMER_READ_PREFIX_LENGTH,
     MAX_READ_COUNT,
+    STD_PRIMER_ERROR_RATE,
 )
 
 console = Console()
@@ -83,6 +84,13 @@ standard primers, to increase speed. Default value of 300,000.",
     default=MAX_READ_COUNT,
 )
 @click.option(
+    "-e",
+    "--std_primer_error_rate",
+    help="The maximum error rate allowed for standard primers. Default value of 0.1.",
+    type=float,
+    default=STD_PRIMER_ERROR_RATE,
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 @click.option(
@@ -107,6 +115,7 @@ def standard_primer_strategy(
     minimum_primer_threshold: float,
     std_primer_read_prefix_length: int,
     max_read_count: int,
+    std_primer_error_rate: float,
     output_prefix: str,
     merged: bool,
     threads: int,
@@ -149,7 +158,7 @@ def standard_primer_strategy(
 
     with console.status("[bold yellow]Loading standard primer library..."):
         std_primer_dict_regex, std_primer_dict, primer_count = parse_std_primers(
-            primers_dir, merged
+            primers_dir, std_primer_error_rate, merged
         )  # Parse std primer library into dictionaries
         console.log(
             "[bold green]Loading standard primer library :white_check_mark:[/bold green]\n"
