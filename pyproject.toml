@@ -57,7 +57,7 @@ tests = [
 dev = [
     "mi-pimento[tests]",
     "pre-commit==4.6.0",
-    "black==24.8.0",
+    "black==26.3.1",
     "flake8==7.1.1",
     "pep8-naming==0.14.1"
 ]
