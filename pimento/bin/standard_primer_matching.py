@@ -37,6 +37,7 @@ logger.setLevel(logging.INFO)
 
 def parse_std_primers(
     primers_dir: Path,
+    std_primer_error_rate: float,
     merged: bool = False,
 ) -> tuple[defaultdict[defaultdict], defaultdict[defaultdict]]:
     """
@@ -47,6 +48,8 @@ def parse_std_primers(
 
     :param primers_dir: Path to directory containing standard primer FASTA files.
     :type primers_dir: Path
+    :param std_primer_error_rate: The maximum error rate allowed for standard primers.
+    :type std_primer_error_rate: float
     :param merged: Whether sequences are merged paired-end or single-end. Affects reverse primer handling.
         Defaults to False.
     :type merged: bool
@@ -70,7 +73,7 @@ def parse_std_primers(
             if merged and primer_name[-1] == "R":
                 primer_seq = str(Seq(primer_seq).complement())
 
-            primer_regex = primer_regex_query_builder(primer_seq)
+            primer_regex = primer_regex_query_builder(primer_seq, std_primer_error_rate)
             std_primer_dict_regex[region][primer_name] = primer_regex
             std_primer_dict[region][primer_name] = primer_seq
             primer_count += 1
@@ -85,6 +88,13 @@ def run_primer_matching_once(input_primer: str, substring_count_dict: dict):
     Takes one primer and a dictionary of read substrings and their counts.
     Uses fuzzy matching to allow for at most one error (for sequencing errors).
     Returns number of reads matching given primer.
+
+    :param input_primer: The primer sequence to match.
+    :type input_primer: str
+    :param substring_count_dict: Dictionary mapping substrings to their occurrence counts.
+    :type substring_count_dict: dict
+    :return: The total count of matching reads.
+    :rtype: float
     """
 
     match_count = 0.0
@@ -286,6 +296,17 @@ def write_std_output(
 ) -> None:
     """
     Save found std primers into a fasta file.
+
+    :param results: List containing the amplified region name and dictionary of detected primers (F and/or R).
+    :type results: list[str, dict]
+    :param output_prefix: Prefix to be used for output files.
+    :type output_prefix: str
+    :param std_primer_dict: Dictionary of standard primers and their sequences.
+    :type std_primer_dict: defaultdict
+    :param merged: Whether the input is merged paired-end or single-end reads. Defaults to False.
+    :type merged: bool
+    :return: Tuple of paths to the output FASTA and summary text files.
+    :rtype: tuple[Path, Path]
     """
 
     with (

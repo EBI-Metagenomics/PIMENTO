@@ -1,6 +1,6 @@
 [project]
 name = "mi-pimento"
-version = "1.2.0"
+version = "1.2.1"
 readme = "README.md"
 license = {text = "Apache Software License 2.0"}
 authors = [
@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "biopython==1.86",
+    "biopython==1.87",
     "numpy==2.5.1",
     "pandas==3.0.3",
     "regex==2026.7.10",
@@ -41,10 +41,10 @@ pimento = "pimento.pimento_cli:cli"
 
 [project.optional-dependencies]
 tests = [
-    "pytest==7.4.0",
+    "pytest==9.0.3",
     "pytest-md==0.2.0",
     "pytest-workflow==2.0.1",
-    "biopython==1.86",
+    "biopython==1.87",
     "pandas==3.0.3",
     "numpy==2.5.1",
     "regex==2026.7.10",
@@ -57,7 +57,7 @@ tests = [
 dev = [
     "mi-pimento[tests]",
     "pre-commit==4.6.0",
-    "black==24.8.0",
+    "black==26.3.1",
     "flake8==7.1.1",
     "pep8-naming==0.14.1"
 ]

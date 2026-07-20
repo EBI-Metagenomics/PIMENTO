@@ -75,7 +75,15 @@ Where forward strand primers have the character `F` as the final character, and 
 
 `-o <output_prefix>`: the prefix to be used on output files.
 
-`--merged`: this optional flag should be used when dealing with either **merged paired-end reads**, or **single-end reads**, so that PIMENTO can correctly identify reverse-orientation primers
+`-m <minimum_primer_threshold>`: this optional parameter sets the minimum proportion of reads a standard primer has to be present in to be considered in inference. Default value of 0.60 (60%) of reads.
+
+`-l <std_primer_read_prefix_length>`: this optional parameter sets the read prefix window length that is read for inferring the presence of standard primers. Default value of 50 bases.
+
+`-c <max_read_count>`: this optional parameter sets the maximum number of reads used to infer the presence of standard primers, to increase speed. Default value of 300,000 reads.
+
+`-e <std_primer_error_rate>`: this optional parameter sets the maximum error rate allowed for standard primers to be considered a match. A mismatch for an ambiguous base is counted as an error only if it doesn't match any of its possible bases. The number of bases always rounds up, e.g. primer lengths of 15 and 20 with an error rate of 0.1 will be a maximum of 2 errors for both primers. Default value of 0.1 (10%) of a primer's length in bases.
+
+`--merged`: this optional flag should be used when dealing with either **merged paired-end reads**, or **single-end reads**, so that PIMENTO can correctly identify reverse-orientation primers.
 
 `-t <threads>`: this optional parameter allows you to specify the number of threads to be used for the search. Default of 1.
 
@@ -101,6 +109,8 @@ NB: Running `pimento auto` executes the three subcommands `generate_bcv`, `find_
 `-i <fastq/fastq.gz>`: the input FASTQ reads file.
 
 `-st [FR/F/R]`: the selection of strands to perform primer inference for - F for forward, R for reverse, FR for both.
+
+`-c <max_read_count>`: this optional parameter sets the maximum number of reads used to infer the presence of standard primers, to increase speed. Default value of 300,000 reads.
 
 `-o <output_prefix>`: the prefix to be used on output files.
 

@@ -22,6 +22,7 @@ from pimento.bin.thresholds import (
     MIN_STD_PRIMER_THRESHOLD,
     STD_PRIMER_READ_PREFIX_LENGTH,
     MAX_READ_COUNT,
+    STD_PRIMER_ERROR_RATE,
 )
 
 console = Console()
@@ -83,6 +84,13 @@ standard primers, to increase speed. Default value of 300,000.",
     default=MAX_READ_COUNT,
 )
 @click.option(
+    "-e",
+    "--std_primer_error_rate",
+    help="The maximum error rate allowed for standard primers. Default value of 0.1.",
+    type=float,
+    default=STD_PRIMER_ERROR_RATE,
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 @click.option(
@@ -107,6 +115,7 @@ def standard_primer_strategy(
     minimum_primer_threshold: float,
     std_primer_read_prefix_length: int,
     max_read_count: int,
+    std_primer_error_rate: float,
     output_prefix: str,
     merged: bool,
     threads: int,
@@ -128,8 +137,16 @@ def standard_primer_strategy(
     :param minimum_primer_threshold: The minimum matching proportion threshold for a primer to be considered.
     The current default value for this threshold is a proportion of 0.60 of reads. Users can customise this value.
     :type minimum_primer_threshold: float
+    :param std_primer_read_prefix_length: Length of read prefix to search for primers.
+    :type std_primer_read_prefix_length: int
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
+    :param std_primer_error_rate: The maximum error rate allowed for standard primers.
+    :type std_primer_error_rate: float
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
+    :param merged: Whether the input is merged paired-end or single-end reads.
+    :type merged: bool
     :param threads: Number of threads to use for parallel matching.
     :type threads: int
     """
@@ -149,7 +166,7 @@ def standard_primer_strategy(
 
     with console.status("[bold yellow]Loading standard primer library..."):
         std_primer_dict_regex, std_primer_dict, primer_count = parse_std_primers(
-            primers_dir, merged
+            primers_dir, std_primer_error_rate, merged
         )  # Parse std primer library into dictionaries
         console.log(
             "[bold green]Loading standard primer library :white_check_mark:[/bold green]\n"
@@ -296,6 +313,8 @@ def generate_base_conservation_vector(
     :type input_fastq: Path
     :param strand: The strand(s) to perform primer inference for. Values can be either F, R, or FR for both.
     :type strand: str
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     :return: TSV file containing the base-conservation vector.
@@ -432,6 +451,8 @@ def choose_primer_cutoff(
     :type input_fastq: Path
     :param primer_cutoffs: TSV file containing the potential cutoff points to consider.
     :type primer_cutoffs: Path
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     :return: The output FASTA file containing the inferred primer sequences.
@@ -533,6 +554,8 @@ def primer_cutoff_strategy(
     :type input_fastq: Path
     :param strand: The strand(s) to perform primer inference for. Values can be either F, R, or FR for both.
     :type strand: str
+    :param max_read_count: Maximum number of reads to process.
+    :type max_read_count: int
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     """

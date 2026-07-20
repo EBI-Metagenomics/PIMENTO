@@ -31,6 +31,7 @@ from pimento.bin.thresholds import (
     MIN_STD_PRIMER_THRESHOLD,
     STD_PRIMER_READ_PREFIX_LENGTH,
     MAX_READ_COUNT,
+    STD_PRIMER_ERROR_RATE,
 )
 
 
@@ -189,6 +190,57 @@ class TestStandardPrimerThresholds:
         # Fifth positional argument is max_read_count
         assert call_args[4] == custom_max_read_count
         assert call_args[4] != MAX_READ_COUNT
+
+    @patch("pimento.pimento_cli.write_std_output")
+    @patch("pimento.pimento_cli.get_primer_props")
+    @patch("pimento.pimento_cli.parse_std_primers")
+    def test_std_primer_error_rate_custom(
+        self, mock_parse: MagicMock, mock_get_props: MagicMock, mock_write: MagicMock
+    ) -> None:
+        """
+        Test that --std_primer_error_rate parameter overrides STD_PRIMER_ERROR_RATE default.
+
+        Verifies that custom value (0.2) is passed to parse_std_primers() instead of
+        default value (0.1).
+
+        :param mock_parse: Mock for parse_std_primers function.
+        :type mock_parse: MagicMock
+        :param mock_get_props: Mock for get_primer_props function.
+        :type mock_get_props: MagicMock
+        :param mock_write: Mock for write_std_output function.
+        :type mock_write: MagicMock
+        """
+        # Setup mocks
+        mock_parse.return_value = ({}, {}, 0)
+        mock_get_props.return_value = []
+        mock_write.return_value = (Path("test.fasta"), Path("test.txt"))
+
+        runner = CliRunner()
+        custom_error_rate = 0.2
+
+        result = runner.invoke(
+            cli,
+            [
+                "std",
+                "--input_fastq",
+                "tests/fixtures/test.fastq.gz",
+                "--output_prefix",
+                "test_output",
+                "--std_primer_error_rate",
+                str(custom_error_rate),
+                "--merged",
+            ],
+        )
+
+        # Verify command executed successfully
+        assert result.exit_code == 0
+
+        # Verify parse_std_primers was called with custom error rate
+        assert mock_parse.called
+        call_args = mock_parse.call_args[0]
+        # Second positional argument is std_primer_error_rate
+        assert call_args[1] == custom_error_rate
+        assert call_args[1] != STD_PRIMER_ERROR_RATE
 
     @patch("pimento.pimento_cli.write_std_output")
     @patch("pimento.pimento_cli.get_primer_props")
@@ -477,3 +529,88 @@ class TestAutoPipelineThresholds:
         assert mock_choose.called
         choose_call_args = mock_choose.call_args[0]
         assert choose_call_args[2] == custom_max_read_count
+
+
+class TestPrimerRegexQueryBuilder:
+    """Test max_error calculation in primer_regex_query_builder function."""
+
+    def test_max_error_calculation_with_various_parameters(self) -> None:
+        """
+        Test that max_error is calculated correctly as ceil(primer_length * std_primer_error_rate).
+
+        Tests multiple combinations of primer lengths and error rates to ensure the
+        ceiling function is applied correctly.
+        """
+        from pimento.bin.pimento_utils import primer_regex_query_builder
+        import regex
+
+        # Test case 1: primer_length=20, std_primer_error_rate=0.1 -> max_error=2
+        primer_20bp = "A" * 20
+        result = primer_regex_query_builder(primer_20bp, 0.1)
+        # Extract max_error from regex pattern: (.*AAAA...){{e<=2}}
+        match = regex.search(r"\{e<=(\d+)\}", result)
+        assert match is not None
+        max_error = int(match.group(1))
+        assert (
+            max_error == 2
+        ), f"Expected max_error=2 for 20bp primer with 0.1 error rate, got {max_error}"
+
+        # Test case 2: primer_length=15, std_primer_error_rate=0.1 -> max_error=2 (ceil(1.5)=2)
+        primer_15bp = "A" * 15
+        result = primer_regex_query_builder(primer_15bp, 0.1)
+        match = regex.search(r"\{e<=(\d+)\}", result)
+        assert match is not None
+        max_error = int(match.group(1))
+        assert (
+            max_error == 2
+        ), f"Expected max_error=2 for 15bp primer with 0.1 error rate, got {max_error}"
+
+        # Test case 3: primer_length=10, std_primer_error_rate=0.1 -> max_error=1 (ceil(1.0)=1)
+        primer_10bp = "A" * 10
+        result = primer_regex_query_builder(primer_10bp, 0.1)
+        match = regex.search(r"\{e<=(\d+)\}", result)
+        assert match is not None
+        max_error = int(match.group(1))
+        assert (
+            max_error == 1
+        ), f"Expected max_error=1 for 10bp primer with 0.1 error rate, got {max_error}"
+
+        # Test case 4: primer_length=25, std_primer_error_rate=0.2 -> max_error=5 (ceil(5.0)=5)
+        primer_25bp = "A" * 25
+        result = primer_regex_query_builder(primer_25bp, 0.2)
+        match = regex.search(r"\{e<=(\d+)\}", result)
+        assert match is not None
+        max_error = int(match.group(1))
+        assert (
+            max_error == 5
+        ), f"Expected max_error=5 for 25bp primer with 0.2 error rate, got {max_error}"
+
+        # Test case 5: primer_length=17, std_primer_error_rate=0.15 -> max_error=3 (ceil(2.55)=3)
+        primer_17bp = "A" * 17
+        result = primer_regex_query_builder(primer_17bp, 0.15)
+        match = regex.search(r"\{e<=(\d+)\}", result)
+        assert match is not None
+        max_error = int(match.group(1))
+        assert (
+            max_error == 3
+        ), f"Expected max_error=3 for 17bp primer with 0.15 error rate, got {max_error}"
+
+        # Test case 6: primer_length=8, std_primer_error_rate=0.1 -> max_error=1 (ceil(0.8)=1)
+        primer_8bp = "A" * 8
+        result = primer_regex_query_builder(primer_8bp, 0.1)
+        match = regex.search(r"\{e<=(\d+)\}", result)
+        assert match is not None
+        max_error = int(match.group(1))
+        assert (
+            max_error == 1
+        ), f"Expected max_error=1 for 8bp primer with 0.1 error rate, got {max_error}"
+
+        # Test case 7: primer_length=30, std_primer_error_rate=0.05 -> max_error=2 (ceil(1.5)=2)
+        primer_30bp = "A" * 30
+        result = primer_regex_query_builder(primer_30bp, 0.05)
+        match = regex.search(r"\{e<=(\d+)\}", result)
+        assert match is not None
+        max_error = int(match.group(1))
+        assert (
+            max_error == 2
+        ), f"Expected max_error=2 for 30bp primer with 0.05 error rate, got {max_error}"
