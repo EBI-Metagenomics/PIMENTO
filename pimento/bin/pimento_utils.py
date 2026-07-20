@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from collections import defaultdict, Counter
+from math import ceil
 from pathlib import Path
 import logging
 import pyfastx
@@ -152,7 +153,7 @@ def compute_windowed_base_conservation(
     return base_conservation, cons_seq
 
 
-def primer_regex_query_builder(primer):
+def primer_regex_query_builder(primer: str, std_primer_error_rate: float):
     """
     Takes an input nucleotide sequence that can contain IUPAC ambiguous codes
     Returns a string formatted as a regex query that considers the different
@@ -160,11 +161,15 @@ def primer_regex_query_builder(primer):
 
     :param primer: Nucleotide sequence string that may contain IUPAC ambiguity codes.
     :type primer: str
+    :param std_primer_error_rate: The maximum error rate allowed for standard primers.
+    :type std_primer_error_rate: float
     :return: Regex query string with ambiguity codes converted to character classes.
     :rtype: str
     """
 
     query = ""
+    primer_length = len(primer)
+    max_error = ceil(primer_length * std_primer_error_rate)
 
     for char in primer:
         if char in ("A", "C", "T", "G"):
@@ -172,7 +177,7 @@ def primer_regex_query_builder(primer):
         else:
             query += str(AMBIGUOUS_BASES_DICT[char])
 
-    query = f"(.*{query}){{e<=2}}"
+    query = f"(.*{query}){{e<={max_error}}}"
 
     return query
 
