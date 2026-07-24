@@ -230,15 +230,19 @@ def get_primer_props(
     #  Loop through every collected primer and put primers in singles or doubles
     for region in res_dict.keys():
         strands = res_dict[region]
-
         for strand in strands.keys():
             primers = strands[strand]
             max_prop = 0.0
-            max_name = ""
             for primer_name, prop in primers.items():
-                if prop > max_prop:
+                if max_prop == 0:
                     max_prop = prop
                     max_name = primer_name
+                elif prop >= max_prop:
+                    primer_len = len(std_primer_dict[region][primer_name])
+                    max_primer_len = len(std_primer_dict[region][max_name])
+                    if (prop - max_prop) <= 0.03 and primer_len > max_primer_len:
+                        max_prop = prop
+                        max_name = primer_name
 
             if len(strands.keys()) == 2:
                 double_status = True
@@ -261,25 +265,15 @@ def get_primer_props(
             r_primer_name = list(primers[1].keys())[0]
             f_primer_prop = primers[0][f_primer_name]
             r_primer_prop = primers[1][r_primer_name]
-            # TODO: use these
-            # f_primer_len = len(std_primer_dict[region][f_primer_name])
-            # r_primer_len = len(std_primer_dict[region][r_primer_name])
 
             mean_prop = (f_primer_prop + r_primer_prop) / 2.0
             if mean_prop > max_mean_prop:
-                if (mean_prop - max_mean_prop) <= 0.03 and region == max_region:
-                    max_primers.append(
-                        [{f_primer_name: f_primer_prop}, {r_primer_name: r_primer_prop}]
-                    )
-                else:
-                    max_region = region
-                    max_primers = [
-                        [
-                            {f_primer_name: f_primer_prop},
-                            {r_primer_name: r_primer_prop},
-                        ],
-                    ]
                 max_mean_prop = mean_prop
+                max_region = region
+                max_primers = [
+                    {f_primer_name: f_primer_prop},
+                    {r_primer_name: r_primer_prop},
+                ]
 
     else:
         for region in singles:  # Choose the best single primer
@@ -287,24 +281,14 @@ def get_primer_props(
             primer_name = list(primer.keys())[0]
             prop = primer[primer_name]
             if prop > max_mean_prop:
-                if (prop - max_mean_prop) <= 0.03 and region == max_region:
-                    max_primers.append([{primer_name: prop}])
                 max_mean_prop = prop
                 max_region = region
-                max_primers = [{primer_name: prop}]
-
-    if double_status:
-        if len(max_primers) == 1:
-            fwd_primer = max_primers[0][0]
-            rev_primer = max_primers[0][1]
-        else:
-            for primer_pair in max_primers:
-                print(primer_pair)
+                max_primers = {primer_name: prop}
 
     if max_region == "":
         return []
     elif double_status:
-        return [max_region, fwd_primer, rev_primer]
+        return [max_region, max_primers[0], max_primers[1]]
     else:
         return [max_region, max_primers]
 
