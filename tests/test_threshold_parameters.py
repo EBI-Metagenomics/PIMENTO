@@ -86,8 +86,8 @@ class TestStandardPrimerThresholds:
         assert mock_get_props.called
         call_args = mock_get_props.call_args[0]
         # Third positional argument is minimum_primer_threshold
-        assert call_args[2] == custom_threshold
-        assert call_args[2] != MIN_STD_PRIMER_THRESHOLD
+        assert call_args[3] == custom_threshold
+        assert call_args[3] != MIN_STD_PRIMER_THRESHOLD
 
     @patch("pimento.pimento_cli.write_std_output")
     @patch("pimento.pimento_cli.get_primer_props")
@@ -137,8 +137,8 @@ class TestStandardPrimerThresholds:
         assert mock_get_props.called
         call_args = mock_get_props.call_args[0]
         # Fourth positional argument is std_primer_read_prefix_length
-        assert call_args[3] == custom_prefix_length
-        assert call_args[3] != STD_PRIMER_READ_PREFIX_LENGTH
+        assert call_args[4] == custom_prefix_length
+        assert call_args[4] != STD_PRIMER_READ_PREFIX_LENGTH
 
     @patch("pimento.pimento_cli.write_std_output")
     @patch("pimento.pimento_cli.get_primer_props")
@@ -188,8 +188,8 @@ class TestStandardPrimerThresholds:
         assert mock_get_props.called
         call_args = mock_get_props.call_args[0]
         # Fifth positional argument is max_read_count
-        assert call_args[4] == custom_max_read_count
-        assert call_args[4] != MAX_READ_COUNT
+        assert call_args[5] == custom_max_read_count
+        assert call_args[5] != MAX_READ_COUNT
 
     @patch("pimento.pimento_cli.write_std_output")
     @patch("pimento.pimento_cli.get_primer_props")
@@ -296,14 +296,14 @@ class TestStandardPrimerThresholds:
         assert mock_get_props.called
         call_args = mock_get_props.call_args[0]
 
-        assert call_args[2] == custom_threshold
-        assert call_args[3] == custom_prefix_length
-        assert call_args[4] == custom_max_read_count
+        assert call_args[3] == custom_threshold
+        assert call_args[4] == custom_prefix_length
+        assert call_args[5] == custom_max_read_count
 
         # Verify they differ from defaults
-        assert call_args[2] != MIN_STD_PRIMER_THRESHOLD
-        assert call_args[3] != STD_PRIMER_READ_PREFIX_LENGTH
-        assert call_args[4] != MAX_READ_COUNT
+        assert call_args[3] != MIN_STD_PRIMER_THRESHOLD
+        assert call_args[4] != STD_PRIMER_READ_PREFIX_LENGTH
+        assert call_args[5] != MAX_READ_COUNT
 
 
 class TestGenerateBCVThresholds:

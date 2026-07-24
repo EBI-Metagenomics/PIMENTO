@@ -179,6 +179,7 @@ def standard_primer_strategy(
     with console.status("[bold yellow]Searching for standard primers..."):
         results = get_primer_props(
             std_primer_dict_regex,
+            std_primer_dict,
             input_fastq,
             minimum_primer_threshold,
             std_primer_read_prefix_length,
