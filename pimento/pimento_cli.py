@@ -91,6 +91,13 @@ standard primers, to increase speed. Default value of 300,000.",
     default=STD_PRIMER_ERROR_RATE,
 )
 @click.option(
+    "--greedy_primer_length_flag",
+    help="The greedy choice to make for when two primers are good candidates for a strand."
+    "Options: `longest` primer or `shortest` primer. Default is `longest` primer.",
+    type=click.Choice(["longest", "shortest"]),
+    default="longest",
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 @click.option(
@@ -116,6 +123,7 @@ def standard_primer_strategy(
     std_primer_read_prefix_length: int,
     max_read_count: int,
     std_primer_error_rate: float,
+    greedy_primer_length_flag: str,
     output_prefix: str,
     merged: bool,
     threads: int,
@@ -184,6 +192,7 @@ def standard_primer_strategy(
             minimum_primer_threshold,
             std_primer_read_prefix_length,
             max_read_count,
+            greedy_primer_length_flag,
             merged,
             threads,
         )  # Find all the std primers in the input and select most common

@@ -115,6 +115,7 @@ def get_primer_props(
     min_std_primer_threshold: float,
     std_primer_read_prefix_length: int,
     max_read_count: int,
+    greedy_primer_length_flag: str,
     merged: bool = False,
     threads: int = 1,
 ) -> list[str, dict]:
@@ -235,14 +236,27 @@ def get_primer_props(
             max_prop = 0.0
             for primer_name, prop in primers.items():
                 if max_prop == 0:
+                    # have to start with values for the first primer
                     max_prop = prop
                     max_name = primer_name
                 elif prop >= max_prop:
                     primer_len = len(std_primer_dict[region][primer_name])
                     max_primer_len = len(std_primer_dict[region][max_name])
-                    if (prop - max_prop) <= 0.03 and primer_len > max_primer_len:
-                        max_prop = prop
-                        max_name = primer_name
+                    if (prop - max_prop) <= 0.03:
+                        # if the difference in proportion between the two is less than 0.03
+                        if (
+                            greedy_primer_length_flag == "longest"
+                            and primer_len > max_primer_len
+                        ):
+                            # and the primer is longer, then greedily choose the longer primer
+                            max_prop = prop
+                            max_name = primer_name
+                        elif (
+                            greedy_primer_length_flag == "shortest"
+                            and primer_len < max_primer_len
+                        ):
+                            max_prop = prop
+                            max_name = primer_name
 
             if len(strands.keys()) == 2:
                 double_status = True
