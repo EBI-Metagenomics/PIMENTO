@@ -83,6 +83,8 @@ Where forward strand primers have the character `F` as the final character, and 
 
 `-e <std_primer_error_rate>`: this optional parameter sets the maximum error rate allowed for standard primers to be considered a match. A mismatch for an ambiguous base is counted as an error only if it doesn't match any of its possible bases. The number of bases always rounds up, e.g. primer lengths of 15 and 20 with an error rate of 0.1 will be a maximum of 2 errors for both primers. Default value of 0.1 (10%) of a primer's length in bases.
 
+`--greedy_primer_length_flag [longest/shortest]`: this optional parameter determines which primer to select when multiple primers are viable candidates for a strand (i.e., when their proportions differ by ≤ 0.03). Options are `longest` to greedily select the longer primer, or `shortest` to select the shorter primer. Default value is `longest`.
+
 `--merged`: this optional flag should be used when dealing with either **merged paired-end reads**, or **single-end reads**, so that PIMENTO can correctly identify reverse-orientation primers.
 
 `-t <threads>`: this optional parameter allows you to specify the number of threads to be used for the search. Default of 1.
