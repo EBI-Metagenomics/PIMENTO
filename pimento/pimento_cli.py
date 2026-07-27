@@ -151,6 +151,10 @@ def standard_primer_strategy(
     :type max_read_count: int
     :param std_primer_error_rate: The maximum error rate allowed for standard primers.
     :type std_primer_error_rate: float
+    :param greedy_primer_length_flag: The greedy choice to make when two primers are good candidates
+    for a strand (i.e., when their proportions differ by <= 0.03). Options are 'longest' to select
+    the longer primer, or 'shortest' to select the shorter primer. Default is 'longest'.
+    :type greedy_primer_length_flag: str
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     :param merged: Whether the input is merged paired-end or single-end reads.
