@@ -73,11 +73,11 @@ class TestPrimerSelectionHighProportions:
         std_primer_dict = defaultdict(dict)
 
         std_primer_dict_regex["COI-5P"]["primer_AF"] = "A" * 18
-        std_primer_dict_regex["COI-5P"]["primer_BF"] = "B" * 25
+        std_primer_dict_regex["COI-5P"]["primer_BF"] = "B" * 17
         std_primer_dict_regex["COI-5P"]["primer_CF"] = "C" * 20
 
         std_primer_dict["COI-5P"]["primer_AF"] = "A" * 18
-        std_primer_dict["COI-5P"]["primer_BF"] = "B" * 25
+        std_primer_dict["COI-5P"]["primer_BF"] = "B" * 17
         std_primer_dict["COI-5P"]["primer_CF"] = "C" * 20
 
         # Call get_primer_props
