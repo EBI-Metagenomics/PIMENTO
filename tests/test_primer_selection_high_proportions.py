@@ -48,7 +48,7 @@ class TestPrimerSelectionHighProportions:
 
         Primers:
         - primer_AF: 0.60 proportion (600 matches), 18bp
-        - primer_BF: 0.90 proportion (900 matches), 25bp (HIGHEST - should be selected)
+        - primer_BF: 0.90 proportion (900 matches), 17bp (HIGHEST - should be selected)
         - primer_CF: 0.65 proportion (650 matches), 20bp
 
         Flag: 'longest' (but shouldn't matter since 0.90 is clearly highest)
