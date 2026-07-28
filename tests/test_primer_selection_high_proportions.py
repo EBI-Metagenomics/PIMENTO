@@ -344,3 +344,74 @@ class TestPrimerSelectionHighProportions:
         assert result[0] == "COI-5P"
         assert "primer_BF" in result[1]
         assert result[1]["primer_BF"] == 0.60
+
+    @patch("pimento.bin.standard_primer_matching.get_read_count")
+    @patch("pimento.bin.standard_primer_matching.fetch_read_substrings")
+    @patch("pimento.bin.standard_primer_matching.run_primer_matching_once")
+    def test_slightly_less_common_but_longer_primer_selected(
+        self,
+        mock_run_primer: MagicMock,
+        mock_fetch: MagicMock,
+        mock_read_count: MagicMock,
+    ) -> None:
+        """
+        Test that a slightly less common but longer primer is selected with 'longest' flag.
+
+        This tests the key scenario enabled by using abs(prop - max_prop) <= 0.03:
+        when a primer has a slightly LOWER proportion (within 0.03) but is longer,
+        it should be selected when greedy_primer_length_flag='longest'.
+
+        Primers:
+        - primer_AF: 0.65 proportion (650 matches), 18bp (shorter, MORE common)
+        - primer_BF: 0.63 proportion (630 matches), 25bp (longer, LESS common)
+        - Difference: |0.63 - 0.65| = 0.02 <= 0.03
+
+        Flag: 'longest'
+        Expected: primer_BF selected (0.63 proportion, 25bp)
+
+        This validates that the algorithm can "go backwards" and select a less
+        common primer if it's significantly longer and the difference is small.
+        """
+        from pimento.bin.standard_primer_matching import get_primer_props
+
+        # Mock the dependencies
+        mock_read_count.return_value = 1000
+        mock_fetch.return_value = {}
+
+        # Mock primer matching results - primer_AF is MORE common
+        # But primer_BF is longer and within 0.03 difference
+        mock_run_primer.side_effect = [
+            650,  # primer_AF: 0.65 proportion (more common)
+            630,  # primer_BF: 0.63 proportion (less common, but longer)
+        ]
+
+        # Create primer dictionaries with different lengths
+        std_primer_dict_regex = defaultdict(dict)
+        std_primer_dict = defaultdict(dict)
+
+        std_primer_dict_regex["COI-5P"]["primer_AF"] = "A" * 18  # Shorter
+        std_primer_dict_regex["COI-5P"]["primer_BF"] = "B" * 25  # Longer
+
+        std_primer_dict["COI-5P"]["primer_AF"] = "A" * 18
+        std_primer_dict["COI-5P"]["primer_BF"] = "B" * 25
+
+        # Call get_primer_props with 'longest' flag
+        result = get_primer_props(
+            std_primer_dict_regex=std_primer_dict_regex,
+            std_primer_dict=std_primer_dict,
+            input_fastq=Path("test.fastq.gz"),
+            min_std_primer_threshold=0.50,
+            std_primer_read_prefix_length=50,
+            max_read_count=1000,
+            greedy_primer_length_flag="longest",
+            merged=True,
+            threads=1,
+        )
+
+        # Verify primer_BF (longer, but less common) was selected
+        # This is the key assertion: we select the LONGER primer even though
+        # it has a LOWER proportion (0.63 vs 0.65)
+        assert len(result) == 2
+        assert result[0] == "COI-5P"
+        assert "primer_BF" in result[1]
+        assert result[1]["primer_BF"] == 0.63
