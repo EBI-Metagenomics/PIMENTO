@@ -234,34 +234,36 @@ def get_primer_props(
         for strand in strands.keys():
             primers = strands[strand]
             max_prop = 0.0
+            max_name = ""
             for primer_name, prop in primers.items():
                 if max_prop == 0:
                     # have to start with values for the first primer
                     max_prop = prop
                     max_name = primer_name
-                elif prop >= max_prop:
-                    primer_len = len(std_primer_dict[region][primer_name])
-                    max_primer_len = len(std_primer_dict[region][max_name])
 
-                    if (prop - max_prop) > 0.03:
-                        # Significantly higher proportion - always select this primer
+                primer_len = len(std_primer_dict[region][primer_name])
+                max_primer_len = len(std_primer_dict[region][max_name])
+
+                if (prop - max_prop) > 0.03:
+                    # Significantly higher proportion - always select this primer
+                    max_prop = prop
+                    max_name = primer_name
+                elif (
+                    abs(prop - max_prop) <= 0.03
+                ):  # check abs value because we want to pick it even if it's less common if it's longer/shorter
+                    # Similar proportions (difference <= 0.03) - apply greedy length logic
+                    if (
+                        greedy_primer_length_flag == "longest"
+                        and primer_len > max_primer_len
+                    ):
                         max_prop = prop
                         max_name = primer_name
-                    else:
-                        # Similar proportions (difference <= 0.03) - apply greedy length logic
-                        if (
-                            greedy_primer_length_flag == "longest"
-                            and primer_len > max_primer_len
-                        ):
-                            # and the primer is longer, then greedily choose the longer primer
-                            max_prop = prop
-                            max_name = primer_name
-                        elif (
-                            greedy_primer_length_flag == "shortest"
-                            and primer_len < max_primer_len
-                        ):
-                            max_prop = prop
-                            max_name = primer_name
+                    elif (
+                        greedy_primer_length_flag == "shortest"
+                        and primer_len < max_primer_len
+                    ):
+                        max_prop = prop
+                        max_name = primer_name
 
             if len(strands.keys()) == 2:
                 double_status = True
