@@ -242,8 +242,13 @@ def get_primer_props(
                 elif prop >= max_prop:
                     primer_len = len(std_primer_dict[region][primer_name])
                     max_primer_len = len(std_primer_dict[region][max_name])
-                    if (prop - max_prop) <= 0.03:
-                        # if the difference in proportion between the two is less than 0.03
+
+                    if (prop - max_prop) > 0.03:
+                        # Significantly higher proportion - always select this primer
+                        max_prop = prop
+                        max_name = primer_name
+                    else:
+                        # Similar proportions (difference <= 0.03) - apply greedy length logic
                         if (
                             greedy_primer_length_flag == "longest"
                             and primer_len > max_primer_len
