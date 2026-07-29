@@ -89,6 +89,17 @@ Where forward strand primers have the character `F` as the final character, and 
 
 `-t <threads>`: this optional parameter allows you to specify the number of threads to be used for the search. Default of 1.
 
+### Greedy primer length selection (`--greedy_primer_length_flag`)
+
+When multiple primers of the same strand match at a high enough threshold, PIMENTO must decide which to select. All potential primers are iterated through, and a final choice is made based on two factors: the proportion of matching reads and the primer length.
+
+1. **Read proportion** — If a primer's read proportion is higher than another by more than 0.03, it is selected regardless of primer length. For example, for two primers A and B with read proportions of 0.70 and 0.90 respectively, primer B is chosen. This ensures that the most commonly found primer always wins when the difference is significant.
+2. **Greedy length tiebreaker** — When read proportions are close between two primers (within 0.03 in either direction), the `--greedy_primer_length_flag` setting breaks the tie:
+   - `longest` (default): select the longer primer.
+   - `shortest`: select the shorter primer.
+
+For example, for two primers A and B with read proportions of 0.92 and 0.90 respectively, and primer lengths of 22 and 25 bases respectively, primer B will be chosen if the the flag is set to `longest`, while primer A will be chosen if the flag is set to `shortest`.
+
 #### Outputs
 
 `<output_prefix>_std_primers.fasta`: FASTA file containing the best found single or pairs of primers. Empty if none were found.
