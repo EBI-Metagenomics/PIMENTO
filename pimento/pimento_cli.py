@@ -62,7 +62,7 @@ def cli():
 @click.option(
     "-m",
     "--minimum_primer_threshold",
-    help="The minimum proportion of reads a standard primer has to be present\
+    help="The minimum proportion of reads a standard primer has to be present \
 in to be considered in inference. Default value of 0.60.",
     type=float,
     default=MIN_STD_PRIMER_THRESHOLD,
@@ -70,7 +70,7 @@ in to be considered in inference. Default value of 0.60.",
 @click.option(
     "-l",
     "--std_primer_read_prefix_length",
-    help="The read prefix length that is read for inferring the presence of\
+    help="The read prefix length that is read for inferring the presence of \
 standard primers. Default value of 50.",
     type=int,
     default=STD_PRIMER_READ_PREFIX_LENGTH,
@@ -78,7 +78,7 @@ standard primers. Default value of 50.",
 @click.option(
     "-c",
     "--max_read_count",
-    help="The maximum number of reads used to infer the presence of\
+    help="The maximum number of reads used to infer the presence of \
 standard primers, to increase speed. Default value of 300,000.",
     type=int,
     default=MAX_READ_COUNT,
@@ -91,6 +91,13 @@ standard primers, to increase speed. Default value of 300,000.",
     default=STD_PRIMER_ERROR_RATE,
 )
 @click.option(
+    "--greedy_primer_length_flag",
+    help="The greedy choice to make for when two primers are good candidates for a strand."
+    "Options: `longest` primer or `shortest` primer. Default is `longest` primer.",
+    type=click.Choice(["longest", "shortest"]),
+    default="longest",
+)
+@click.option(
     "-o", "--output_prefix", required=True, help="Prefix to output file.", type=str
 )
 @click.option(
@@ -99,7 +106,7 @@ standard primers, to increase speed. Default value of 300,000.",
     is_flag=True,
     help="Flag for running the standard primer strategy in `merged` mode, \
 which is necessary if the input sequence file is made up of merged paired-end \
-or single-end reads. Specifically, it will reverse the substrings that are searched\
+or single-end reads. Specifically, it will reverse the substrings that are searched \
 for reverse primers, and use the complement of said reverse primers.",
 )
 @click.option(
@@ -116,6 +123,7 @@ def standard_primer_strategy(
     std_primer_read_prefix_length: int,
     max_read_count: int,
     std_primer_error_rate: float,
+    greedy_primer_length_flag: str,
     output_prefix: str,
     merged: bool,
     threads: int,
@@ -143,6 +151,10 @@ def standard_primer_strategy(
     :type max_read_count: int
     :param std_primer_error_rate: The maximum error rate allowed for standard primers.
     :type std_primer_error_rate: float
+    :param greedy_primer_length_flag: The greedy choice to make when two primers are good candidates
+    for a strand (i.e., when their proportions differ by <= 0.03). Options are 'longest' to select
+    the longer primer, or 'shortest' to select the shorter primer. Default is 'longest'.
+    :type greedy_primer_length_flag: str
     :param output_prefix: The prefix to be used on output files.
     :type output_prefix: str
     :param merged: Whether the input is merged paired-end or single-end reads.
@@ -179,10 +191,12 @@ def standard_primer_strategy(
     with console.status("[bold yellow]Searching for standard primers..."):
         results = get_primer_props(
             std_primer_dict_regex,
+            std_primer_dict,
             input_fastq,
             minimum_primer_threshold,
             std_primer_read_prefix_length,
             max_read_count,
+            greedy_primer_length_flag,
             merged,
             threads,
         )  # Find all the std primers in the input and select most common
@@ -293,7 +307,7 @@ def are_there_primers(input_fastq: Path, output_prefix: str) -> None:
 @click.option(
     "-c",
     "--max_read_count",
-    help="The maximum number of reads used to infer the presence of\
+    help="The maximum number of reads used to infer the presence of \
 standard primers, to increase speed. Default value of 300,000.",
     type=int,
     default=MAX_READ_COUNT,
@@ -429,7 +443,7 @@ def find_potential_cutoffs(input_bcv: Path, output_prefix: str) -> Path:
 @click.option(
     "-c",
     "--max_read_count",
-    help="The maximum number of reads used to infer the presence of\
+    help="The maximum number of reads used to infer the presence of \
 standard primers, to increase speed. Default value of 300,000.",
     type=int,
     default=MAX_READ_COUNT,
@@ -526,7 +540,7 @@ def choose_primer_cutoff(
 @click.option(
     "-c",
     "--max_read_count",
-    help="The maximum number of reads used to infer the presence of\
+    help="The maximum number of reads used to infer the presence of \
 standard primers, to increase speed. Default value of 300,000.",
     type=int,
     default=MAX_READ_COUNT,

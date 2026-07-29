@@ -83,9 +83,22 @@ Where forward strand primers have the character `F` as the final character, and 
 
 `-e <std_primer_error_rate>`: this optional parameter sets the maximum error rate allowed for standard primers to be considered a match. A mismatch for an ambiguous base is counted as an error only if it doesn't match any of its possible bases. The number of bases always rounds up, e.g. primer lengths of 15 and 20 with an error rate of 0.1 will be a maximum of 2 errors for both primers. Default value of 0.1 (10%) of a primer's length in bases.
 
+`--greedy_primer_length_flag [longest/shortest]`: this optional parameter determines which primer to select when multiple primers are viable candidates for a strand (i.e., when their proportions differ by ≤ 0.03). Options are `longest` to greedily select the longer primer, or `shortest` to select the shorter primer. Default value is `longest`.
+
 `--merged`: this optional flag should be used when dealing with either **merged paired-end reads**, or **single-end reads**, so that PIMENTO can correctly identify reverse-orientation primers.
 
 `-t <threads>`: this optional parameter allows you to specify the number of threads to be used for the search. Default of 1.
+
+### Greedy primer length selection (`--greedy_primer_length_flag`)
+
+When multiple primers of the same strand match at a high enough threshold, PIMENTO must decide which to select. All potential primers are iterated through, and a final choice is made based on two factors: the proportion of matching reads and the primer length.
+
+1. **Read proportion** — If a primer's read proportion is higher than another by more than 0.03, it is selected regardless of primer length. For example, for two primers A and B with read proportions of 0.70 and 0.90 respectively, primer B is chosen. This ensures that the most commonly found primer always wins when the difference is significant.
+2. **Greedy length tiebreaker** — When read proportions are close between two primers (within 0.03 in either direction), the `--greedy_primer_length_flag` setting breaks the tie:
+   - `longest` (default): select the longer primer.
+   - `shortest`: select the shorter primer.
+
+For example, for two primers A and B with read proportions of 0.92 and 0.90 respectively, and primer lengths of 22 and 25 bases respectively, primer B will be chosen if the the flag is set to `longest`, while primer A will be chosen if the flag is set to `shortest`.
 
 #### Outputs
 
