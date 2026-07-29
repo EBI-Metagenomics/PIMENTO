@@ -110,10 +110,12 @@ def run_primer_matching_once(input_primer: str, substring_count_dict: dict):
 
 def get_primer_props(
     std_primer_dict_regex: defaultdict,
+    std_primer_dict: defaultdict,
     input_fastq: Path,
     min_std_primer_threshold: float,
     std_primer_read_prefix_length: int,
     max_read_count: int,
+    greedy_primer_length_flag: str,
     merged: bool = False,
     threads: int = 1,
 ) -> list[str, dict]:
@@ -229,15 +231,39 @@ def get_primer_props(
     #  Loop through every collected primer and put primers in singles or doubles
     for region in res_dict.keys():
         strands = res_dict[region]
-
         for strand in strands.keys():
             primers = strands[strand]
             max_prop = 0.0
             max_name = ""
             for primer_name, prop in primers.items():
-                if prop > max_prop:
+                if max_prop == 0:
+                    # have to start with values for the first primer
                     max_prop = prop
                     max_name = primer_name
+
+                primer_len = len(std_primer_dict[region][primer_name])
+                max_primer_len = len(std_primer_dict[region][max_name])
+
+                if (prop - max_prop) > 0.03:
+                    # Significantly higher proportion - always select this primer
+                    max_prop = prop
+                    max_name = primer_name
+                elif (
+                    abs(prop - max_prop) <= 0.03
+                ):  # check abs value because we want to pick it even if it's less common if it's longer/shorter
+                    # Similar proportions (difference <= 0.03) - apply greedy length logic
+                    if (
+                        greedy_primer_length_flag == "longest"
+                        and primer_len > max_primer_len
+                    ):
+                        max_prop = prop
+                        max_name = primer_name
+                    elif (
+                        greedy_primer_length_flag == "shortest"
+                        and primer_len < max_primer_len
+                    ):
+                        max_prop = prop
+                        max_name = primer_name
 
             if len(strands.keys()) == 2:
                 double_status = True
@@ -246,8 +272,8 @@ def get_primer_props(
                 singles[region] = {max_name: max_prop}
 
     max_region = ""
-    max_primers = {}
-    max_mean_prop = 0
+    max_primers = []
+    max_mean_prop = 0.0
 
     # if at least one pair of primers was collected
     if double_status:
