@@ -153,11 +153,11 @@ All of the source code making up PIMENTO in this repository is licensed under th
 
 ## Citations
 
-If you use PIMENTO in your work, please cite the Biorxiv pre-print:
+If you use PIMENTO in your work, please cite:
 
 >
->PIMENTO: A PrIMEr infereNce TOolkit to facilitate large-scale calling of amplicon sequence variants
+>PIMENTO: A primer inference toolkit to facilitate large-scale calling of amplicon sequence variants 
 >
 >Christian Atallah, Lorna Richardson, Martin Beracochea, Robert D. Finn
 >
->bioRxiv 2025.07.04.663168; doi: https://doi.org/10.1101/2025.07.04.663168
+>GigaScience 2026; doi: https://doi.org/10.1093/gigascience/giag083
