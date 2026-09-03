@@ -62,7 +62,21 @@ def parse_std_primers(
     std_primer_dict_regex = defaultdict(dict)
     std_primer_dict = defaultdict(dict)
 
-    primer_files = sorted(list(primers_dir.glob("*.fasta")))
+    primer_files = []
+
+    if primers_dir.is_dir():
+        primer_files = sorted(primers_dir.glob("*.fasta"))
+    elif primers_dir.is_file():
+        fasta_extensions = {".fa", ".fna", ".fasta", ".fa.gz", ".fna.gz", ".fasta.gz"}
+        if {primers_dir.suffix}.intersection(
+            fasta_extensions
+        ):  # check that the file extension is one of the allowed fasta ones
+            primer_files = [primers_dir]
+
+    if not primer_files:
+        raise ValueError(
+            f"Input primer directory/file {primers_dir} is neither a directory nor a fasta file. Exiting."
+        )
 
     primer_count = 0
     for primer_file in primer_files:

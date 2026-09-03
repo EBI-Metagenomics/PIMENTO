@@ -56,7 +56,7 @@ def cli():
     "--primers_dir",
     required=True,
     help="Input directory containing the standard primer library. Default uses the PIMENTO standard primer library.",
-    type=click.Path(exists=True, path_type=Path, file_okay=False),
+    type=click.Path(exists=True, path_type=Path, file_okay=True),
     default=Path(DEFAULT_STD_PRIMERS_PATH),
 )
 @click.option(
