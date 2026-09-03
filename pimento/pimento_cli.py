@@ -53,9 +53,10 @@ def cli():
 )
 @click.option(
     "-p",
-    "--primers_dir",
+    "--primer_input",
     required=True,
-    help="Input directory containing the standard primer library. Default uses the PIMENTO standard primer library.",
+    help="Input directory containing the standard primer library, or input fasta file containing primers. "
+    "Default uses the PIMENTO standard primer library.",
     type=click.Path(exists=True, path_type=Path, file_okay=True),
     default=Path(DEFAULT_STD_PRIMERS_PATH),
 )
@@ -118,7 +119,7 @@ for reverse primers, and use the complement of said reverse primers.",
 )
 def standard_primer_strategy(
     input_fastq: Path,
-    primers_dir: Path,
+    primer_input: Path,
     minimum_primer_threshold: float,
     std_primer_read_prefix_length: int,
     max_read_count: int,
@@ -137,11 +138,12 @@ def standard_primer_strategy(
 
     :param input_fastq: The input FASTQ file.
     :type input_fastq: Path
-    :param primers_dir: Directory containing FASTA files of primer sequences for the library.
+    :param primer_input: Directory containing FASTA files of primer sequences for the library,
+        or input fasta file containing primers.
     The only format requirement is that forward strand primer names in the FASTA headers
     finish with the character `F`, and vice versa `R` for reverse strand primers. See PIMENTO's
     standard library for examples.
-    :type primers_dir: Path
+    :type primer_input: Path
     :param minimum_primer_threshold: The minimum matching proportion threshold for a primer to be considered.
     The current default value for this threshold is a proportion of 0.60 of reads. Users can customise this value.
     :type minimum_primer_threshold: float
@@ -169,7 +171,7 @@ def standard_primer_strategy(
         f"[bold grey74]Input FASTQ file: [bold green]{input_fastq}[/bold green][/bold grey74]"
     )
     print(
-        f"[bold grey74]Standard primer library: [bold green]{primers_dir}[/bold green][/bold grey74]"
+        f"[bold grey74]Standard primer library: [bold green]{primer_input}[/bold green][/bold grey74]"
     )
     print(
         f"[bold grey74]Output prefix: [bold green]{output_prefix}[/bold green][/bold grey74]"
@@ -178,7 +180,7 @@ def standard_primer_strategy(
 
     with console.status("[bold yellow]Loading standard primer library..."):
         std_primer_dict_regex, std_primer_dict, primer_count = parse_std_primers(
-            primers_dir, std_primer_error_rate, merged
+            primer_input, std_primer_error_rate, merged
         )  # Parse std primer library into dictionaries
         console.log(
             "[bold green]Loading standard primer library :white_check_mark:[/bold green]\n"
@@ -336,7 +338,6 @@ def generate_base_conservation_vector(
     """
 
     with console.status("[bold yellow]Generating base-conservation vector..."):
-
         res_df = ""
 
         # TODO: match-case statement is python 3.10>. We are currently locking the version
@@ -398,7 +399,6 @@ def find_potential_cutoffs(input_bcv: Path, output_prefix: str) -> Path:
     :rtype: Path
     """
     with console.status("[bold yellow]Finding potential cutoffs..."):
-
         bcv_df = pd.read_csv(input_bcv, sep="\t", index_col=0)  # Read mcp_df
         inf_point_dict = find_bcv_inflection_points(
             bcv_df
@@ -473,7 +473,6 @@ def choose_primer_cutoff(
     :rtype: Path
     """
     with console.status("[bold yellow]Choosing optimal primer cutoff point..."):
-
         cutoffs_df = pd.read_csv(primer_cutoffs, sep="\t")
 
         f_slice = cutoffs_df[cutoffs_df.strand == "F"]  # get forward inflection points

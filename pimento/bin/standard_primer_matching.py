@@ -36,7 +36,7 @@ logger.setLevel(logging.INFO)
 
 
 def parse_std_primers(
-    primers_dir: Path,
+    primer_input: Path,
     std_primer_error_rate: float,
     merged: bool = False,
 ) -> tuple[defaultdict[defaultdict], defaultdict[defaultdict]]:
@@ -46,8 +46,9 @@ def parse_std_primers(
     Reads the fasta files in the given directory
     Primer names (which are the fasta headers) are labeled with F or R for 5'-3' and 3'-5' primers respectively
 
-    :param primers_dir: Path to directory containing standard primer FASTA files.
-    :type primers_dir: Path
+    :param primer_input: Path to directory containing standard primer FASTA files,
+        or input fasta file containing primers.
+    :type primer_input: Path
     :param std_primer_error_rate: The maximum error rate allowed for standard primers.
     :type std_primer_error_rate: float
     :param merged: Whether sequences are merged paired-end or single-end. Affects reverse primer handling.
@@ -64,18 +65,18 @@ def parse_std_primers(
 
     primer_files = []
 
-    if primers_dir.is_dir():
-        primer_files = sorted(primers_dir.glob("*.fasta"))
-    elif primers_dir.is_file():
+    if primer_input.is_dir():
+        primer_files = sorted(primer_input.glob("*.fasta"))
+    elif primer_input.is_file():
         fasta_extensions = {".fa", ".fna", ".fasta", ".fa.gz", ".fna.gz", ".fasta.gz"}
-        if {primers_dir.suffix}.intersection(
+        if {primer_input.suffix}.intersection(
             fasta_extensions
         ):  # check that the file extension is one of the allowed fasta ones
-            primer_files = [primers_dir]
+            primer_files = [primer_input]
 
     if not primer_files:
         raise ValueError(
-            f"Input primer directory/file {primers_dir} is neither a directory nor a fasta file. Exiting."
+            f"Input primer directory/file {primer_input} is neither a directory nor a fasta file. Exiting."
         )
 
     primer_count = 0
