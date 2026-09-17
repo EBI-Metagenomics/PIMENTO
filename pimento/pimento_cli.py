@@ -345,8 +345,8 @@ def generate_base_conservation_vector(
         # with a match-case block.
 
         if strand == "FR":
-            fwd_bcv = _for_single_strand(input_fastq, max_read_count)
-            rev_bcv = _for_single_strand(
+            fwd_bcv = generate_bcv_for_single_strand(input_fastq, max_read_count)
+            rev_bcv = generate_bcv_for_single_strand(
                 input_fastq, max_read_count, rev=True
             )
             res_df = write_bcv_output(fwd_bcv, rev_bcv)
