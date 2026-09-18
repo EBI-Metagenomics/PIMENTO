@@ -351,7 +351,9 @@ def generate_base_conservation_vector(
             )
             res_df = write_bcv_output(fwd_bcv, rev_bcv)
         elif strand == "F":
-            fwd_bcv = generate_bcv_for_single_strand(input_fastq)
+            fwd_bcv = generate_bcv_for_single_strand(
+                input_fastq, max_read_count
+            )
             res_df = write_bcv_output(fwd_bcv)
         elif strand == "R":
             rev_bcv = generate_bcv_for_single_strand(
